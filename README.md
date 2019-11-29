@@ -4,5 +4,6 @@ Welcome to The Worklfow Of Matrix BioLogy Informatics (TWOMBLI). Twombli is a Fi
 to your computer.
 
 To do list:
-Create single output file
+Create single output file 
+
 Include alignment/directionality metric in analysis
