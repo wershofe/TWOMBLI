@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>AnaMorf v2.020</comment>
+<entry key="Time and Date">15/08/2019 12:26:55</entry>
+<entry key="Number of Endpoints">true</entry>
+<entry key="Exclude Edge Objects">false</entry>
+<entry key="Box-Counting Fractal Dimension">true</entry>
+<entry key="Treat Whole Image as One Object">true</entry>
+<entry key="Dark Background">false</entry>
+<entry key="Curvature">true</entry>
+<entry key="Input Directory">C:\Users\barryd\Documents\FIJI_Scripts\Twombly\test</entry>
+<entry key="Light Background">true</entry>
+<entry key="Threshold Method">Default</entry>
+<entry key="Noise Reduction Filter Radius (µm)">1</entry>
+<entry key="Pre-Process Images">false</entry>
+<entry key="Manual Threshold">false</entry>
+<entry key="Background Filter Radius (µm^2)">50.0</entry>
+<entry key="Number of Branchpoints">true</entry>
+<entry key="Total Length">true</entry>
+<entry key="Image Resolution (µm/pixel)">1.0</entry>
+<entry key="Output Curvature Values">false</entry>
+<entry key="Circularity">false</entry>
+<entry key="Threshold Level">0</entry>
+<entry key="Separate Touching Objects">false</entry>
+<entry key="Create Mask Images">false</entry>
+<entry key="Curvature Window">20</entry>
+<entry key="Remove Background">false</entry>
+<entry key="Projected Area">true</entry>
+<entry key="Maximum Circularity">1.0</entry>
+<entry key="Minimum Area (µm^2)">10.0</entry>
+<entry key="Mean Branch Length">true</entry>
+<entry key="Auto Threshold">true</entry>
+<entry key="Lacunarity">true</entry>
+<entry key="Image Format">PNG</entry>
+<entry key="Minimum Branch Length (µm)">10.0</entry>
+<entry key="Fourier Fractal Dimension">false</entry>
+</properties>
