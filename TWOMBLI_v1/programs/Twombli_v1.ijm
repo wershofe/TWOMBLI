@@ -71,7 +71,7 @@ var curvatureWindow = 50;
 var minimumBranchLength = 10;
 var maximumDisplayHDM = 200;
 var gapAnalysis = true;
-var minimumGapDiameter = 0;
+var minimumGapDiameter = 30;
 
 var contrastHigh = 120.0;
 var contrastLow = 0.0;
@@ -101,8 +101,12 @@ if (isOpen("Log")) { 				// reposition in top left corner
 print("\n Prechecks...");
 happyWithValues=false; // will stay in this while loop choosing parameter values until happyWithValues==true
 if(getBoolean("Do you have a pre-existing parameter file you wish to load?")){ // if user has already decided parameter values in previous runs
+	print("Select pre-existing parameter file");
 	loadParameterFile();
 	happyWithValues = true;
+	if(minimumGapDiameter != 0){
+		gapAnalysis=true;
+	}
 	darkline = getBoolean("Are the matrix fibres dark on a light background?");
 }
 
@@ -532,6 +536,7 @@ close("*");
  ------------------------------------------------------------------------------------------------------------------------------
 */
 // Computes HDM on all Eligible images
+wait(1000);
 print("\nStep 13: Computing HDM");
 run("Clear Results");
 inputHDM = inputRaw;
@@ -548,7 +553,9 @@ runMacro(pathToQBS, outputHDM);
 saveAs("Results", outputHDM + "_ResultsHDM.csv");
 close("Results");
 setBatchMode(false);
-print("FINISHED ORIGINAL STUFF!");
+print("FINISHED HDM!");
+wait(1000);
+
 
 /*
  ------------------------------------------------------------------------------------------------------------------------------
@@ -561,7 +568,6 @@ print("FINISHED ORIGINAL STUFF!");
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
 */
-
 
 if(gapAnalysis==true)
 {
@@ -580,9 +586,11 @@ if(gapAnalysis==true)
 			 selectWindow("Results");
 			 run("Close");}
 	
-	print("FINISHED!");
-	
-	
+	print("FINISHED GAP ANALYSIS!");
+	wait(1000);
+	print("Gap analysis can be found in output masks folder.");
+	print("The IMAGE folder contains images with gaps");
+	print("The RESULTS folder contains a csv file for each image describing the gaps \n");
 }
 
 print("FINISHED!");
@@ -887,7 +895,7 @@ function processFileGap(input,  file) {
 	
 	run("Max Inscribed Circles", "minimum=" + minimumGapDiameter + " use minimum_0=0.50 closeness=5");
 	roiManager("Show All");
-
+	run("Flatten");
 	saveAs("tif", input + "/GapAnalysis/Images/"+file +"_GapImage.csv");
 	
 	roiManager("Measure");
