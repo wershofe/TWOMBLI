@@ -52,7 +52,6 @@ if (isOpen("Log")) {
 } 
 
 // declaring global variables
-// variables in upper case are for writing the parameters to a txt file
 var CONTRAST_SATURATION = "Contrast Saturation";
 var LINE_WIDTH = "Line Width";
 var CURVATURE_WINDOW = "Curvature Window";
@@ -63,6 +62,9 @@ var MINIMUM_GAP_DIAMETER = "Minimum Gap Diameter";
 var DELIM = ",";
 var EOL = "\n";
 var PARAM_FILE_NAME = "parameters.txt";
+var HDM_RESULTS_FILENAME = "_ResultsHDM.csv";
+var ANAMORF_RESULTS_FILENAME = "results.csv";
+var TWOMBLI_RESULTS_FILENAME = "Twombli_Results.csv";
 
 // global variables with default values
 var contrastSaturation = 0.35;
@@ -541,8 +543,6 @@ print("\nStep 13: Computing HDM");
 run("Clear Results");
 inputHDM = inputRaw;
 
-
-
 IJ.redirectErrorMessages();
 processFolderHDM(inputHDM,outputHDM);
 
@@ -550,8 +550,11 @@ processFolderHDM(inputHDM,outputHDM);
 setBatchMode(true);
 pathToQBS = searchForFile(getDirectory("imagej"), "", "Quant_Black_Space.ijm");
 runMacro(pathToQBS, outputHDM);
-saveAs("Results", outputHDM + "_ResultsHDM.csv");
+saveAs("Results", outputHDM + File.separator + HDM_RESULTS_FILENAME);
 close("Results");
+
+tidyResults(outputHDM, inputAnamorf, inputEligible);
+
 setBatchMode(false);
 print("FINISHED HDM!");
 wait(1000);
@@ -922,5 +925,42 @@ function closeROI() {
 	if (isOpen("ROI Manager")) {
 		 selectWindow("ROI Manager");
 		 run("Close");}
+}
+
+function tidyResults(outputHDM, inputAnamorf, inputEligible){
+	hdmResults = split(File.openAsString(outputHDM + File.separator + HDM_RESULTS_FILENAME), "\n");
+	anaMorfFiles = getFileList(inputAnamorf);
+	anaMorfFolderIndex = -1;
+	for(i=0; i < anaMorfFiles.length; i++){
+		if(File.isDirectory(inputAnamorf + File.separator + anaMorfFiles[i]) && startsWith(anaMorfFiles[i], "AnaMorf")){
+			anaMorfFolderIndex = i;
+			break;
+		}
+	}
+	if(anaMorfFolderIndex > -1){
+		anaMorfResultsFile = inputAnamorf + File.separator + anaMorfFiles[anaMorfFolderIndex] + File.separator + ANAMORF_RESULTS_FILENAME;
+		anaMorfResults = split(File.openAsString(anaMorfResultsFile), "\n");
+		outputFilepath = File.getParent(inputEligible) + File.separator + TWOMBLI_RESULTS_FILENAME;
+		if(File.exists(outputFilepath)){
+			if(!getBoolean("Results file already exists - delete?")){
+				exit("Aborted due to pre-existing results file");
+			} else {
+				File.delete(outputFilepath);
+			}
+		}
+		
+		twombliResultsFile = File.open(outputFilepath);
+		for(i = 0; i < anaMorfResults.length; i++){
+			j = i;
+			if(i==1){
+				i++;
+			}else if(i > 2){
+				j--;
+			}
+			line = anaMorfResults[i] + "," + hdmResults[j];
+			print(twombliResultsFile, line);
+		}
+		File.close(twombliResultsFile);
+	}
 }
 
