@@ -57,7 +57,7 @@ var LINE_WIDTH = "Line Width";
 var CURVATURE_WINDOW = "Curvature Window";
 var MINIMUM_BRANCH_LENGTH = "Minimum Branch Length";
 var MAXIMUM_DISPLAY_HDM = "Maximum Display HDM";
-var GAP_ANALYSIS = "GapAnalysis";
+//var GAP_ANALYSIS = "GapAnalysis";
 var MINIMUM_GAP_DIAMETER = "Minimum Gap Diameter";
 var DELIM = ",";
 var EOL = "\n";
@@ -72,7 +72,7 @@ var lineWidth = 5;
 var curvatureWindow = 50;
 var minimumBranchLength = 10;
 var maximumDisplayHDM = 200;
-var gapAnalysis = true;
+var gapAnalysis = false;
 var minimumGapDiameter = 30;
 
 var contrastHigh = 120.0;
@@ -326,7 +326,7 @@ print("Choosing sensible parameters...");
 	*/
 	print("\nStep 7: Optional gap analysis");
 	wait(1000);
-    gapAnalysis=getBoolean("Do you want to include gap analysis? (See Documentation Figure 7)");
+    gapAnalysis=getBoolean("Do you want to include gap analysis? (See Documentation Figure 8)");
 	if(gapAnalysis==true)
 	{
 		wait(1000);
@@ -340,6 +340,8 @@ print("Choosing sensible parameters...");
 		waitForUser("Decide minimum gap diameter, then click 'OK'"); 
 
 		minimumGapDiameter = getNumber("minimum gap diameter", minimumGapDiameter);
+	} else{
+		minimumGapDiameter = 0;
 	}
 	
 	/*
@@ -454,7 +456,7 @@ happyRealFolders=false;
 while(happyRealFolders==false){
 	print("Select 'Eligible' folder as input directory");
 	inputEligible = getDirectory("Select 'Eligible' folder as input directory");
-	inputRaw = inputEligible; // for coming back to with computing HDM
+	//inputRaw = inputEligible; // for coming back to with computing HDM
 	print("Select output directory 'Masks' where masks will be saved");
 	outputMasks = getDirectory("Choose an output directory 'Masks' where masks will be saved");
 	
@@ -541,7 +543,7 @@ close("*");
 wait(1000);
 print("\nStep 13: Computing HDM");
 run("Clear Results");
-inputHDM = inputRaw;
+inputHDM = inputEligible;
 
 IJ.redirectErrorMessages();
 processFolderHDM(inputHDM,outputHDM);
@@ -574,13 +576,11 @@ wait(1000);
 
 if(gapAnalysis==true)
 {
-	print("\nOptional Step 14: Computing HDM");
-	print("GAP ANALYSIS WAS TRUE!!");
+	wait(1000);
+	print("\nOptional Step 14: Computing Gap analysis");
 	print("minimumGapDiameter = ",minimumGapDiameter);
 
 	File.makeDirectory(outputMasks+"/GapAnalysis");
-	File.makeDirectory(outputMasks+"/GapAnalysis/Images");
-	File.makeDirectory(outputMasks+"/GapAnalysis/Results");
 	
 	processFolderGap(outputMasks);
 	closeROI();
@@ -591,9 +591,8 @@ if(gapAnalysis==true)
 	
 	print("FINISHED GAP ANALYSIS!");
 	wait(1000);
-	print("Gap analysis can be found in output masks folder.");
-	print("The IMAGE folder contains images with gaps");
-	print("The RESULTS folder contains a csv file for each image describing the gaps \n");
+	print("Gap analysis can be found in output masks folder");
+	print("containing masks with gaps shown, and a summary txt file");
 }
 
 print("FINISHED!");
@@ -626,7 +625,10 @@ saveParameterFile()
 loadParameterFile()
 processFolderGap(input)
 	processFileGap(input)
+		append(arr, value) 
+		percentile(arr,p)
 		closeROI()
+tidyResults()
 */
 
 // function to open all files in a folder
@@ -794,7 +796,6 @@ function saveParameterFile(){
 	print(parameterFile, CURVATURE_WINDOW + DELIM + curvatureWindow + EOL);
 	print(parameterFile, MINIMUM_BRANCH_LENGTH + DELIM + minimumBranchLength + EOL);
 	print(parameterFile, MAXIMUM_DISPLAY_HDM + DELIM + maximumDisplayHDM + EOL);
-	print(parameterFile, GAP_ANALYSIS + DELIM + gapAnalysis + EOL);
 	print(parameterFile, MINIMUM_GAP_DIAMETER + DELIM + minimumGapDiameter + EOL);
 
 	File.close(parameterFile);
@@ -821,8 +822,6 @@ function loadParameterFile(){
 			minimumBranchLength = parseFloat(words[1]);
 		} else if(matches(words[0], MAXIMUM_DISPLAY_HDM)){
 			maximumDisplayHDM = parseFloat(words[1]);
-		} else if(matches(words[0], GAP_ANALYSIS)){
-			gapAnalysis = parseFloat(words[1]);
 		} else if(matches(words[0], MINIMUM_GAP_DIAMETER)){
 			minimumGapDiameter = parseFloat(words[1]);
 		}
@@ -860,28 +859,26 @@ function calcUpperThresh(estimatedSigma){
 function processFolderGap(input) {
 	list = getFileList(input);
 	list = Array.sort(list);
+	gapAnalysisFile = File.open(input + "/GapAnalysis/gapAnalysis.txt");
+	print(gapAnalysisFile,  "filename mean sd percentile5 median percentile95");
 	for (i = 0; i < list.length; i++) {
-		if(File.isDirectory(input + File.separator + list[i]))
-{
-			processFolderGap(input + File.separator + list[i]);
-		//if(endsWith(list[i], suffix))
-		} 
 		if(endsWith(list[i],"png"))
 		{
-			processFileGap(input, list[i]);
+			processFileGap(input, list[i],gapAnalysisFile);
 		}
 	}
+	File.close(gapAnalysisFile);
 }
 
-function processFileGap(input,  file) {
+function processFileGap(input,  file,gapAnalysisFile) {
 	// Do the processing here by adding your own code.
 	// Leave the print statements until things work, then remove them.
+	
 	
 	setBatchMode(true);
 	open(input + File.separator + file);
 	print("Performing gap analysis on ", file);
 	run("Out [-]");
-
 	closeROI();
 	run("ROI Manager...");
 	run("Clear Results");
@@ -892,18 +889,46 @@ function processFileGap(input,  file) {
 	h = getHeight();
 	makeRectangle(1, 1, w-2, h-2);
 	run("Crop");
+	run("Invert");
 	run("Canvas Size...", "width="+w+" height="+h+" position=Center");
 	
-	run("Invert");
 	
 	run("Max Inscribed Circles", "minimum=" + minimumGapDiameter + " use minimum_0=0.50 closeness=5");
 	roiManager("Show All");
 	run("Flatten");
-	saveAs("tif", input + "/GapAnalysis/Images/"+file +"_GapImage.csv");
+	saveAs("tif", input + "/GapAnalysis/"+file +"_GapImage.tif");
 	
 	roiManager("Measure");
 
 	nROIs = roiManager("count");
+
+//-----------------------------------------------------------------------
+	// Computing average statistics
+	if(nROIs>0)
+	{
+		totalArea = 0;
+		varianceNumerator = 0;
+		areaCol = newArray(0);
+	  	for (a=0; a<nResults(); a++) {
+		    areaCol=append(areaCol,getResult("Area",a));
+		    totalArea += getResult("Area",a);
+		}
+		mean = totalArea/nResults();
+	
+		for (a=0; a<nResults(); a++) {
+			    residual = (mean - getResult("Area",a)) * (mean - getResult("Area",a));
+			    varianceNumerator += residual;
+			}
+		variance = varianceNumerator/(nResults()-1);
+		sd = sqrt(variance);
+		arr2 = Array.sort(areaCol);
+		median = percentile(arr2,0.5);
+		percentile5 = percentile(arr2,0.05);
+		percentile95 = percentile(arr2,0.95);
+
+		print(gapAnalysisFile,  file + " " + mean + " " + sd + " " + percentile5 + " " + median + " " + percentile95);
+	}
+//-----------------------------------------------------------------------
 	
 	for(j=0; j<nROIs;j++){
 	roiManager("Select", 0);
@@ -911,12 +936,42 @@ function processFileGap(input,  file) {
 	}
 		
 	selectWindow("Results");
-	saveAs("Results", input + "/GapAnalysis/Results/"+file +"_ResultsGaps.csv");
+	saveAs("Results", input + "/GapAnalysis/IndividualGaps_"+file +".csv");
 	
 	run("Clear Results");
 	close("*");
-
 	setBatchMode(false);
+	
+
+}
+
+function append(arr, value) {
+     arr2 = newArray(arr.length+1);
+     for (i=0; i<arr.length; i++)
+        arr2[i] = arr[i];
+     arr2[arr.length] = value;
+     return arr2;
+  }
+
+function percentile(arr,p) { 
+	// comes from https://stackoverflow.com/questions/2374640/how-do-i-calculate-percentiles-with-python-numpy
+	n = arr.length;
+	if(n==0)
+	{
+		q=-1
+	}
+	k = (n-1)*p;
+	f = floor(k);
+	c = -floor(-k); // There is no ceiling function in ijm
+	if(f==c)
+	{
+		q = arr[k];
+	}else {
+		d0=arr[f] * (c-k);
+		d1 = arr[c] * (k-f);
+		q = d0+d1;
+	}
+	return q;
 }
 
 
