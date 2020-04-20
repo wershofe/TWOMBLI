@@ -1,10 +1,8 @@
 library(circular)
 
-# cmd <- commandArgs(trailingOnly = TRUE);
-# 
-# df <- read.csv(cmd);
+cmd <- commandArgs(trailingOnly = TRUE);
 
-df <- read.csv("C:/Users/Dave/Desktop/DirectionalityResults.csv")
+df <- read.csv(cmd);
 
 df <- df[,c(1,2)]
 colnames(df) <- c("Bin","ProbDensity")

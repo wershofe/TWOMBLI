@@ -1058,10 +1058,10 @@ function processDirectionality(inputHDM) {
 			saveAs("txt", inputHDM + File.separator + TEMP_DIR_RESULTS);
 			close(TEMP_DIR_RESULTS);
 			alignment =  split(exec(pathToR, pathToCompAlign, inputHDM + File.separator + TEMP_DIR_RESULTS), " ");
+			File.delete(inputHDM + File.separator + TEMP_DIR_RESULTS);
 			print(dirResultsFile, title + "," + alignment[1]);
 		}
 	}
 	File.close(dirResultsFile);
-	File.delete(inputHDM + File.separator + TEMP_DIR_RESULTS);
 	setBatchMode(false);
 }
