@@ -112,9 +112,9 @@ if(getBoolean("Do you have a pre-existing parameter file you wish to load?")){ /
 	print("Select pre-existing parameter file");
 	loadParameterFile();
 	happyWithValues = true;
-	if(minimumGapDiameter != 0){
-		gapAnalysis=true;
-	}
+	//if(minimumGapDiameter != 0){
+		//gapAnalysis=true;
+	//}
 	darkline = getBoolean("Are the matrix fibres dark on a light background?");
 }
 
@@ -1031,8 +1031,9 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible){
 			}else if(i > 2){
 				j--;
 			}
-			line = anaMorfResults[i] + "," + hdmResults[j] + "," + dirResults[j];
-			//line = anaMorfResults[i] + "," + hdmResults[j] + exec(pathToR + File.separator + "Rscript.exe", "./ComputingAlignment.R", "C:/Users/Dave/Desktop/DirectionalityResults.csv"));;
+			hdmResult = split(hdmResults[j], ",");
+			dirResult = split(dirResults[j], ",");
+			line = anaMorfResults[i] + "," + hdmResult[hdmResult.length - 1] + "," + dirResult[dirResult.length - 1];
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
