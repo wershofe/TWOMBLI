@@ -65,6 +65,10 @@ var PARAM_FILE_NAME = "parameters.txt";
 var HDM_RESULTS_FILENAME = "_ResultsHDM.csv";
 var ANAMORF_RESULTS_FILENAME = "results.csv";
 var TWOMBLI_RESULTS_FILENAME = "Twombli_Results.csv";
+var TEMP_DIR_RESULTS = "TempDirectionalityResults.csv";
+var DIR_RESULTS = "DirectionalityResults.csv";
+var R_DIR = "Location of Rscript.exe";
+var DIR_HIST = "Directionality Histogram";
 
 // global variables with default values
 var contrastSaturation = 0.35;
@@ -78,6 +82,8 @@ var minimumGapDiameter = 30;
 var contrastHigh = 120.0;
 var contrastLow = 0.0;
 var outputMasks = "";
+var pathToR = "";
+var pathToCompAlign = "";
 
 var darkline;
 
@@ -463,6 +469,12 @@ while(happyRealFolders==false){
 	print("Choose an output directory for HDM");
 	outputHDM = getDirectory("Choose an output directory for HDM");
 	countFiles(outputHDM);
+
+	print("Specify the location of Rscript.exe");
+	pathToR = File.openDialog("Specify the location of Rscript.exe");
+
+	print("Specify the location of ComputationalAlignment.R");
+	pathToCompAlign = File.openDialog("Specify the location of ComputationalAlignment.R");
 	
 	wait(1000);
 	print("Finally, choose file anamorfProperties.xml (in the programs folder)");
@@ -474,6 +486,8 @@ while(happyRealFolders==false){
 	Dialog.addString("outputMasks:", outputMasks,100);
 	Dialog.addString("outputHDM:", outputHDM,100);
 	Dialog.addString("anamorfProperties:", anamorfProperties,100);
+	Dialog.addString(R_DIR, pathToR,100);
+	Dialog.addString("computational alignment", pathToCompAlign,100);
 	Dialog.show();
 
 	happyRealFolders=getBoolean("Are these  folders correct? These folders should NOT be test folders. Click no to select different folders");
@@ -554,6 +568,8 @@ pathToQBS = searchForFile(getDirectory("imagej"), "", "Quant_Black_Space.ijm");
 runMacro(pathToQBS, outputHDM);
 saveAs("Results", outputHDM + File.separator + HDM_RESULTS_FILENAME);
 close("Results");
+
+processDirectionality(outputHDM);
 
 tidyResults(outputHDM, inputAnamorf, inputEligible);
 
@@ -824,6 +840,8 @@ function loadParameterFile(){
 			maximumDisplayHDM = parseFloat(words[1]);
 		} else if(matches(words[0], MINIMUM_GAP_DIAMETER)){
 			minimumGapDiameter = parseFloat(words[1]);
+		} else if(matches(words[0], R_DIR)){
+			pathToR = words[1];
 		}
 	}
 }
@@ -984,6 +1002,7 @@ function closeROI() {
 
 function tidyResults(outputHDM, inputAnamorf, inputEligible){
 	hdmResults = split(File.openAsString(outputHDM + File.separator + HDM_RESULTS_FILENAME), "\n");
+	dirResults = split(File.openAsString(outputHDM + File.separator + DIR_RESULTS), "\n");
 	anaMorfFiles = getFileList(inputAnamorf);
 	anaMorfFolderIndex = -1;
 	for(i=0; i < anaMorfFiles.length; i++){
@@ -1012,10 +1031,36 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible){
 			}else if(i > 2){
 				j--;
 			}
-			line = anaMorfResults[i] + "," + hdmResults[j];
+			line = anaMorfResults[i] + "," + hdmResults[j] + "," + dirResults[j];
+			//line = anaMorfResults[i] + "," + hdmResults[j] + exec(pathToR + File.separator + "Rscript.exe", "./ComputingAlignment.R", "C:/Users/Dave/Desktop/DirectionalityResults.csv"));;
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
 	}
 }
 
+function processDirectionality(inputHDM) {
+	setBatchMode(true);
+	list = getFileList(inputHDM);
+	outputFilepath = inputHDM  + File.separator + DIR_RESULTS;
+	dirResultsFile = File.open(outputFilepath);
+	print(dirResultsFile, "Image, Alignment");
+	for (i = 0; i < list.length; i++) {
+		if(endsWith(toUpperCase(list[i]), "PNG")){
+			open(inputHDM + File.separator + list[i]);
+			title = getTitle();
+			run("Directionality ");
+			close(title);
+			selectWindow("Directionality Analysis of " + title);
+			run("Close");
+			selectWindow(DIR_HIST);
+			saveAs("txt", inputHDM + File.separator + TEMP_DIR_RESULTS);
+			close(TEMP_DIR_RESULTS);
+			alignment =  split(exec(pathToR, pathToCompAlign, inputHDM + File.separator + TEMP_DIR_RESULTS), " ");
+			print(dirResultsFile, title + "," + alignment[1]);
+		}
+	}
+	File.close(dirResultsFile);
+	File.delete(inputHDM + File.separator + TEMP_DIR_RESULTS);
+	setBatchMode(false);
+}
