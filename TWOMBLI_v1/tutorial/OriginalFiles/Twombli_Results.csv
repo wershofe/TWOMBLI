@@ -1,0 +1,3 @@
+Image,Area (microns^2),Lacunarity,Total Length (microns),Endpoints,HGU (microns),Branchpoints,Box-Counting Fractal Dimension,Curvature,% Black, Alignment
+2L_7D.png,44957,26.956,35495,1742,20.376,1276,1.499,54.457,0.938,run
+2L_4D.png,36402,33.761,29156,1557,18.726,642,1.457,49.416,0.894,run

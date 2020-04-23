@@ -65,10 +65,6 @@ var PARAM_FILE_NAME = "parameters.txt";
 var HDM_RESULTS_FILENAME = "_ResultsHDM.csv";
 var ANAMORF_RESULTS_FILENAME = "results.csv";
 var TWOMBLI_RESULTS_FILENAME = "Twombli_Results.csv";
-var TEMP_DIR_RESULTS = "TempDirectionalityResults.csv";
-var DIR_RESULTS = "DirectionalityResults.csv";
-var R_DIR = "Location of Rscript.exe";
-var DIR_HIST = "Directionality Histogram";
 
 // global variables with default values
 var contrastSaturation = 0.35;
@@ -82,8 +78,6 @@ var minimumGapDiameter = 30;
 var contrastHigh = 120.0;
 var contrastLow = 0.0;
 var outputMasks = "";
-var pathToR = "";
-var pathToCompAlign = "";
 
 var darkline;
 
@@ -112,9 +106,9 @@ if(getBoolean("Do you have a pre-existing parameter file you wish to load?")){ /
 	print("Select pre-existing parameter file");
 	loadParameterFile();
 	happyWithValues = true;
-	//if(minimumGapDiameter != 0){
-		//gapAnalysis=true;
-	//}
+	if(minimumGapDiameter != 0){
+		gapAnalysis=true;
+	}
 	darkline = getBoolean("Are the matrix fibres dark on a light background?");
 }
 
@@ -130,7 +124,8 @@ print("Organise images into Eligible and Ineligible folders. See documentation f
 
 while(happyWithValues==false)
 {
-	print("\nStep 1: Image resolution");// all manual instructions for the user
+	print("\nStep 1: Image resolution");
+// all manual instructions for the user
 	wait(1000);
 	print("Move any images of resolution lower than 1 pixel = 1 micron from the Eligible folder to the Ineligible folder. Can check this by clicking Image->Show info");
 	wait(1000);
@@ -317,12 +312,15 @@ print("Choosing sensible parameters...");
 		print("on the mask without sharp turns or branches (see Figure 8 in documentation).");
 		wait(1000);
 		 
-		print("Once you have decided the curvature window that works for all masks, click OK and enter the value when prompted");
+		
+print("Once you have decided the curvature window that works for all masks, click OK and enter the value when prompted");
 		wait(1000);
 		waitForUser("Decide curvature window, then click 'OK'"); 
 		print("Enter curvature window that works for all test images");
-		curvatureWindow = getNumber("curvature window", curvatureWindow); // curvature window was declared globally at start with value of 50.
-		minimumBranchLength = curvatureWindow/10; // by default this is set to curvatureWindow/10 but can be altered later by the user
+		curvatureWindow = getNumber("curvature window", curvatureWindow); 
+// curvature window was declared globally at start with value of 50.
+		minimumBranchLength = curvatureWindow/10; 
+// by default this is set to curvatureWindow/10 but can be altered later by the user
 		wait(1000);
 		happyCurvature=getBoolean("Are you happy with the curvature window? (Click no if you want to repeat this step)");
 	}
@@ -434,14 +432,16 @@ print("Choosing sensible parameters...");
 	{
 		print("Exiting macro. Go back to start of prechecks to choose parameter values again");
 		wait(1000);
-	}else{
+	}
+else{
 		saveParameterFile(); // write the chosen parameter files to a parameter file, so next time user can skip previous steps
 	}
 }
 print("End of pre-checks");
 wait(1000);
 
-close("*");//close everything.
+close("*");
+//close everything.
 
 /*
  ------------------------------------------------------------------------------------------------------------------------------
@@ -469,12 +469,6 @@ while(happyRealFolders==false){
 	print("Choose an output directory for HDM");
 	outputHDM = getDirectory("Choose an output directory for HDM");
 	countFiles(outputHDM);
-
-	print("Specify the location of Rscript.exe");
-	pathToR = File.openDialog("Specify the location of Rscript.exe");
-
-	print("Specify the location of ComputationalAlignment.R");
-	pathToCompAlign = File.openDialog("Specify the location of ComputationalAlignment.R");
 	
 	wait(1000);
 	print("Finally, choose file anamorfProperties.xml (in the programs folder)");
@@ -486,8 +480,6 @@ while(happyRealFolders==false){
 	Dialog.addString("outputMasks:", outputMasks,100);
 	Dialog.addString("outputHDM:", outputHDM,100);
 	Dialog.addString("anamorfProperties:", anamorfProperties,100);
-	Dialog.addString(R_DIR, pathToR,100);
-	Dialog.addString("computational alignment", pathToCompAlign,100);
 	Dialog.show();
 
 	happyRealFolders=getBoolean("Are these  folders correct? These folders should NOT be test folders. Click no to select different folders");
@@ -525,22 +517,30 @@ close("*");
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
 */
-// computes Anamorf (where most of the metrics are derived) on all eligible files
+
+// computes Anamorf (where most of the metrics are derived) on all eligible files
 inputAnamorf = outputMasks;
 wait(1000);
 print("\nStep 12: extracting parameters with Anamorf");
 
 
 run("AnaMorf Macro Extensions");
-Ext.initialiseAnaMorf(inputAnamorf,anamorfProperties);// anamorfProperties is a .xml file - for now just leave this. Might be able to remove in future
+Ext.initialiseAnaMorf(inputAnamorf,anamorfProperties);
+// anamorfProperties is a .xml file - for now just leave this. Might be able to remove in future
 
-Ext.setAnaMorfFileType("PNG");// don't worry about this - the masks generated are of png type, so this should be left alone
+Ext.setAnaMorfFileType("PNG");
+// don't worry about this - the masks generated are of png type, so this should be left alone
 Ext.setAnaMorfCurvatureWindow(curvatureWindow);
 Ext.setAnaMorfMinBranchLength(minimumBranchLength);
 Ext.runAnaMorf();
 
 wait(1000);
 print("HERE exiting anamorf");
+
+wait(1000);
+print("Now computing alignment");
+alignmentVec=newArray(0);
+alignmentVec = processFolderAlignment(outputMasks);	
 close("*"); 
 /*
  ------------------------------------------------------------------------------------------------------------------------------
@@ -569,10 +569,6 @@ runMacro(pathToQBS, outputHDM);
 saveAs("Results", outputHDM + File.separator + HDM_RESULTS_FILENAME);
 close("Results");
 
-processDirectionality(outputHDM);
-
-tidyResults(outputHDM, inputAnamorf, inputEligible);
-
 setBatchMode(false);
 print("FINISHED HDM!");
 wait(1000);
@@ -589,7 +585,7 @@ wait(1000);
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
 */
-
+print("gap analysis = ", gapAnalysis);
 if(gapAnalysis==true)
 {
 	wait(1000);
@@ -611,6 +607,7 @@ if(gapAnalysis==true)
 	print("containing masks with gaps shown, and a summary txt file");
 }
 
+tidyResults(outputHDM, inputAnamorf, inputEligible, alignmentVec);
 print("FINISHED!");
 /*
  ------------------------------------------------------------------------------------------------------------------------------
@@ -644,6 +641,8 @@ processFolderGap(input)
 		append(arr, value) 
 		percentile(arr,p)
 		closeROI()
+	processFolderAlignment()
+		processFileAlignment()
 tidyResults()
 */
 
@@ -840,8 +839,6 @@ function loadParameterFile(){
 			maximumDisplayHDM = parseFloat(words[1]);
 		} else if(matches(words[0], MINIMUM_GAP_DIAMETER)){
 			minimumGapDiameter = parseFloat(words[1]);
-		} else if(matches(words[0], R_DIR)){
-			pathToR = words[1];
 		}
 	}
 }
@@ -894,13 +891,13 @@ function processFileGap(input,  file,gapAnalysisFile) {
 	
 	
 	setBatchMode(true);
-	open(input + File.separator + file);
+	
 	print("Performing gap analysis on ", file);
-	run("Out [-]");
 	closeROI();
 	run("ROI Manager...");
 	run("Clear Results");
 	
+	open(input + File.separator + file);
 	run("Invert");
 	// create border
 	w = getWidth();
@@ -910,7 +907,15 @@ function processFileGap(input,  file,gapAnalysisFile) {
 	run("Invert");
 	run("Canvas Size...", "width="+w+" height="+h+" position=Center");
 	
-	
+	run("Make Binary");
+	// Invert LUT
+	getLut(reds, greens, blues);
+	for (i=0; i<reds.length; i++) {
+	    reds[i] = 255-reds[i];
+	    greens[i] = 255-greens[i];
+	    blues[i] = 255-blues[i];
+	}
+
 	run("Max Inscribed Circles", "minimum=" + minimumGapDiameter + " use minimum_0=0.50 closeness=5");
 	roiManager("Show All");
 	run("Flatten");
@@ -945,22 +950,22 @@ function processFileGap(input,  file,gapAnalysisFile) {
 		percentile95 = percentile(arr2,0.95);
 
 		print(gapAnalysisFile,  file + " " + mean + " " + sd + " " + percentile5 + " " + median + " " + percentile95);
-	}
-//-----------------------------------------------------------------------
 	
-	for(j=0; j<nROIs;j++){
-	roiManager("Select", 0);
-	roiManager("Delete");
-	}
+	//-----------------------------------------------------------------------
 		
-	selectWindow("Results");
-	saveAs("Results", input + "/GapAnalysis/IndividualGaps_"+file +".csv");
-	
-	run("Clear Results");
+		for(j=0; j<nROIs;j++){
+		roiManager("Select", 0);
+		roiManager("Delete");
+		}
+			
+		selectWindow("Results");
+		saveAs("Results", input + "/GapAnalysis/IndividualGaps_"+file +".csv");
+		
+		run("Clear Results");
+	}
 	close("*");
 	setBatchMode(false);
 	
-
 }
 
 function append(arr, value) {
@@ -992,7 +997,6 @@ function percentile(arr,p) {
 	return q;
 }
 
-
 function closeROI() {
 
 	if (isOpen("ROI Manager")) {
@@ -1000,9 +1004,42 @@ function closeROI() {
 		 run("Close");}
 }
 
-function tidyResults(outputHDM, inputAnamorf, inputEligible){
+function processFolderAlignment(input) { // this should be outputMasks folder
+	list = getFileList(input);
+	list = Array.sort(list);
+	var alignmentVec = newArray(list.length+1);
+	alignmentVec[0] = "Alignment";
+	for (i = 0; i < list.length; i++) {
+		if(endsWith(list[i],"png"))
+		{
+			processFileAlignment(input, list[i], alignmentVec, i);
+		}
+	}
+//	print("This is the alignmentVec:");
+//	Array.print(alignmentVec);
+	return alignmentVec;
+}
+
+
+function processFileAlignment(input,  file, alignmentVec, i) {
+	setBatchMode(true);
+	open(input + File.separator + file);
+	print("Performing alignment analysis on ", file);
+	run("Out [-]");
+	
+	T=getTitle();
+	run("OrientationJ Dominant Direction");
+	IJ.renameResults("Dominant Direction of "+T,"Results");
+	alignmentVec[i+1]=getResult("Coherency [%]",0);
+
+	run("Clear Results");
+	close("*");
+	setBatchMode(false);
+}
+
+
+function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 	hdmResults = split(File.openAsString(outputHDM + File.separator + HDM_RESULTS_FILENAME), "\n");
-	dirResults = split(File.openAsString(outputHDM + File.separator + DIR_RESULTS), "\n");
 	anaMorfFiles = getFileList(inputAnamorf);
 	anaMorfFolderIndex = -1;
 	for(i=0; i < anaMorfFiles.length; i++){
@@ -1026,42 +1063,27 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible){
 		twombliResultsFile = File.open(outputFilepath);
 		for(i = 0; i < anaMorfResults.length; i++){
 			j = i;
+			k=i;
+			if(i>0){
+				k=anaMorfResults.length-i;
+			}
 			if(i==1){
 				i++;
 			}else if(i > 2){
 				j--;
 			}
 			hdmResult = split(hdmResults[j], ",");
-			dirResult = split(dirResults[j], ",");
-			line = anaMorfResults[i] + "," + hdmResult[hdmResult.length - 1] + "," + dirResult[dirResult.length - 1];
+			
+			line = anaMorfResults[k] + "," + hdmResult[hdmResult.length - 1] + "," + alignmentVec[j];
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
-	}
-}
 
-function processDirectionality(inputHDM) {
-	setBatchMode(true);
-	list = getFileList(inputHDM);
-	outputFilepath = inputHDM  + File.separator + DIR_RESULTS;
-	dirResultsFile = File.open(outputFilepath);
-	print(dirResultsFile, "Image, Alignment");
-	for (i = 0; i < list.length; i++) {
-		if(endsWith(toUpperCase(list[i]), "PNG")){
-			open(inputHDM + File.separator + list[i]);
-			title = getTitle();
-			run("Directionality ");
-			close(title);
-			selectWindow("Directionality Analysis of " + title);
-			run("Close");
-			selectWindow(DIR_HIST);
-			saveAs("txt", inputHDM + File.separator + TEMP_DIR_RESULTS);
-			close(TEMP_DIR_RESULTS);
-			alignment =  split(exec(pathToR, pathToCompAlign, inputHDM + File.separator + TEMP_DIR_RESULTS), " ");
-			File.delete(inputHDM + File.separator + TEMP_DIR_RESULTS);
-			print(dirResultsFile, title + "," + alignment[1]);
-		}
 	}
-	File.close(dirResultsFile);
-	setBatchMode(false);
+	print("This is the alignmentVec:");
+	//Array.print(alignmentVec);
+
+	for(i = 0; i < alignmentVec.length; i++){
+		print(alignmentVec[i]);
+	}
 }

@@ -1,0 +1,4 @@
+Image,Area (microns^2),Lacunarity,Total Length (microns),Endpoints,HGU (microns),Branchpoints,Box-Counting Fractal Dimension,Curvature
+/Users/wershofe/Desktop/TWOMBLI/TWOMBLI_v1/tutorial/Masks,0,0.000,0,0,0.000,0,0.000,0.000
+2L_7D.png,44957,26.956,35495,1742,20.376,1276,1.499,55.000
+2L_4D.png,36402,33.761,29156,1557,18.726,642,1.457,49.416
