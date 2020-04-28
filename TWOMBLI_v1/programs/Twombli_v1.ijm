@@ -1063,18 +1063,20 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 		twombliResultsFile = File.open(outputFilepath);
 		for(i = 0; i < anaMorfResults.length; i++){
 			j = i;
-			k=i;
-			if(i>0){
-				k=anaMorfResults.length-i;
-			}
 			if(i==1){
 				i++;
 			}else if(i > 2){
 				j--;
 			}
 			hdmResult = split(hdmResults[j], ",");
+
+			if(j==0){
+				hdm = "% High Density Matrix";
+			} else {
+				hdm =  hdmResult[hdmResult.length - 1];
+			}
 			
-			line = anaMorfResults[k] + "," + hdmResult[hdmResult.length - 1] + "," + alignmentVec[j];
+			line = anaMorfResults[i] + "," + hdm + "," + alignmentVec[j];
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);

@@ -26,3 +26,6 @@ for(i in 1:nrow(df))
 rBar <- angular.deviation(vec, na.rm = FALSE)
 
 print(rBar[1])
+
+?angular.deviation
+
