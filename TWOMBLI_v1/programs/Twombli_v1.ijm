@@ -1039,7 +1039,8 @@ function processFileAlignment(input,  file, alignmentVec, i) {
 
 
 function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
-	hdmResults = split(File.openAsString(outputHDM + File.separator + HDM_RESULTS_FILENAME), "\n");
+	hdmResultsFile = outputHDM + File.separator + HDM_RESULTS_FILENAME;
+	hdmResults = split(File.openAsString(hdmResultsFile), "\n");
 	anaMorfFiles = getFileList(inputAnamorf);
 	anaMorfFolderIndex = -1;
 	for(i=0; i < anaMorfFiles.length; i++){
@@ -1051,13 +1052,12 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 	if(anaMorfFolderIndex > -1){
 		anaMorfResultsFile = inputAnamorf + File.separator + anaMorfFiles[anaMorfFolderIndex] + File.separator + ANAMORF_RESULTS_FILENAME;
 		anaMorfResults = split(File.openAsString(anaMorfResultsFile), "\n");
-		outputFilepath = File.getParent(inputEligible) + File.separator + TWOMBLI_RESULTS_FILENAME;
-		if(File.exists(outputFilepath)){
-			if(!getBoolean("Results file already exists - delete?")){
-				exit("Aborted due to pre-existing results file");
-			} else {
-				File.delete(outputFilepath);
-			}
+		baseOutputFilepath = File.getParent(inputEligible) + File.separator + TWOMBLI_RESULTS_FILENAME;
+		outputFilepath = baseOutputFilepath + ".csv";
+		count = 1;
+		while(File.exists(outputFilepath)){
+			outputFilepath = baseOutputFilepath + "_" + count + ".csv";
+			count++;
 		}
 		
 		twombliResultsFile = File.open(outputFilepath);
@@ -1065,22 +1065,21 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 			j = i;
 			if(i==1){
 				i++;
-			}else if(i > 2){
+			} else if(i > 2){
 				j--;
 			}
-			hdmResult = split(hdmResults[j], ",");
 
-			if(j==0){
+			if(i==0){
 				hdm = "% High Density Matrix";
 			} else {
-				hdm =  hdmResult[hdmResult.length - 1];
+				anaMorfLine = split(anaMorfResults[i], ",");
+				hdm =  matchHDMResult(anaMorfLine[0], hdmResults);
 			}
 			
 			line = anaMorfResults[i] + "," + hdm + "," + alignmentVec[j];
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
-
 	}
 	print("This is the alignmentVec:");
 	//Array.print(alignmentVec);
@@ -1088,4 +1087,15 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 	for(i = 0; i < alignmentVec.length; i++){
 		print(alignmentVec[i]);
 	}
+}
+
+function matchHDMResult(imageName, hdmResults){
+	for(i = 0; i < hdmResults.length; i++){
+		line = hdmResults[i];
+		splitLine = split(line, ",");
+		if(matches(imageName, splitLine[1])){
+			return splitLine[splitLine.length - 1];
+		}
+	}
+	return NaN;
 }
