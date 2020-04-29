@@ -1062,21 +1062,20 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 		
 		twombliResultsFile = File.open(outputFilepath);
 		for(i = 0; i < anaMorfResults.length; i++){
-			j = i;
+			hdmIndex = i;
 			if(i==1){
 				i++;
-			} else if(i > 2){
-				j--;
 			}
-
 			if(i==0){
 				hdm = "% High Density Matrix";
 			} else {
 				anaMorfLine = split(anaMorfResults[i], ",");
-				hdm =  matchHDMResult(anaMorfLine[0], hdmResults);
+				hdmIndex =  matchHDMResult(anaMorfLine[0], hdmResults);
+				hdmLine = split(hdmResults[hdmIndex], ",");
+				hdm = hdmLine[hdmLine.length - 1];
 			}
 			
-			line = anaMorfResults[i] + "," + hdm + "," + alignmentVec[j];
+			line = anaMorfResults[i] + "," + hdm + "," + alignmentVec[hdmIndex];
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
@@ -1094,8 +1093,8 @@ function matchHDMResult(imageName, hdmResults){
 		line = hdmResults[i];
 		splitLine = split(line, ",");
 		if(matches(imageName, splitLine[1])){
-			return splitLine[splitLine.length - 1];
+			return i;
 		}
 	}
-	return NaN;
+	return -1;
 }
