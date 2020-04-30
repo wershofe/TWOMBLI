@@ -1,10 +1,9 @@
 # TWOMBLI
 
-Welcome to The Worklfow Of Matrix BioLogy Informatics (TWOMBLI). Twombli is a Fiji plugin. To get started download the TWOMBLI folder
+Welcome to The Worklfow Of Matrix BioLogy Informatics (TWOMBLI). TWOMBLI is a FIJI plugin. To get started download the TWOMBLI folder
 to your computer.
 
-To do list:
+Documentation can be found inside the TWOMBLI folder
 
-Create single output file 
+A video tutorial can be found here: https://bmm.crick.ac.uk/TWOMBLI/
 
-Include alignment/directionality metric in analysis

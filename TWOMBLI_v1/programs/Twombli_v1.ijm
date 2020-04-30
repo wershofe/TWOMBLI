@@ -4,7 +4,7 @@
 */
 
 /*
- INSTRUCTIONS FOR ROB:
+ INSTRUCTIONS:
  - It's a good idea to read the documentation and try the tutorial first to get a feel for what it does
  - If you want to start a new .ijm script (eg for testing a specific function) Click File->New, then Language->IJ1 Macro
  - All built in macro functions can be found here: https://imagej.nih.gov/ij/developer/macro/functions.html
@@ -874,7 +874,7 @@ function calcUpperThresh(estimatedSigma){
 function processFolderGap(input) {
 	list = getFileList(input);
 	list = Array.sort(list);
-	gapAnalysisFile = File.open(input + "/GapAnalysis/gapAnalysis.txt");
+	gapAnalysisFile = File.open(input + "/GapAnalysis/GapAnalysisSummary.txt");
 	print(gapAnalysisFile,  "filename mean sd percentile5 median percentile95");
 	for (i = 0; i < list.length; i++) {
 		if(endsWith(list[i],"png"))
@@ -898,23 +898,17 @@ function processFileGap(input,  file,gapAnalysisFile) {
 	run("Clear Results");
 	
 	open(input + File.separator + file);
+	
 	run("Invert");
-	// create border
 	w = getWidth();
 	h = getHeight();
-	makeRectangle(1, 1, w-2, h-2);
+	makeRectangle(1, 1, w-20, h-20);
 	run("Crop");
 	run("Invert");
 	run("Canvas Size...", "width="+w+" height="+h+" position=Center");
-	
-	run("Make Binary");
-	// Invert LUT
-	getLut(reds, greens, blues);
-	for (i=0; i<reds.length; i++) {
-	    reds[i] = 255-reds[i];
-	    greens[i] = 255-greens[i];
-	    blues[i] = 255-blues[i];
-	}
+    run("Make Binary");
+    run("Invert");
+
 
 	run("Max Inscribed Circles", "minimum=" + minimumGapDiameter + " use minimum_0=0.50 closeness=5");
 	roiManager("Show All");
@@ -1052,7 +1046,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 	if(anaMorfFolderIndex > -1){
 		anaMorfResultsFile = inputAnamorf + File.separator + anaMorfFiles[anaMorfFolderIndex] + File.separator + ANAMORF_RESULTS_FILENAME;
 		anaMorfResults = split(File.openAsString(anaMorfResultsFile), "\n");
-		baseOutputFilepath = File.getParent(inputEligible) + File.separator + TWOMBLI_RESULTS_FILENAME;
+		baseOutputFilepath = File.getParent(outputHDM) + File.separator + TWOMBLI_RESULTS_FILENAME;
 		outputFilepath = baseOutputFilepath + ".csv";
 		count = 1;
 		while(File.exists(outputFilepath)){
@@ -1079,12 +1073,6 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
-	}
-	print("This is the alignmentVec:");
-	//Array.print(alignmentVec);
-
-	for(i = 0; i < alignmentVec.length; i++){
-		print(alignmentVec[i]);
 	}
 }
 

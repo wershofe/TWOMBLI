@@ -77,8 +77,13 @@ function selectRegions(input, file){
 			saveAs("PNG", outputCroppedFolder + File.separator + "cropped_" + file );
 		}
 		else {
+			open(input + File.separator + file);
+			roiManager("Show All");
+			run("Flatten");
+			saveAs("Tiff", outputCroppedFolder + File.separator + "allRegions_" + file );
+			close();
 			for (i=0; i<roiManager("count"); ++i) {
-		    	open(input + File.separator + file);
+				open(input + File.separator + file);
 				rename("Original");
 		    	run("Duplicate...", " ");
 				copy = getImageID();

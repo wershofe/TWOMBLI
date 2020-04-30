@@ -1,0 +1,4 @@
+Image,Area (microns^2),Lacunarity,Total Length (microns),Endpoints,HGU (microns),Branchpoints,Box-Counting Fractal Dimension,Curvature,% High Density Matrix,Alignment
+2L_7D.png,44957,26.956,35495,1742,20.376,1276,1.499,54.472,0.894,0.01541
+2L_2D.png,26017,48.035,20958,1392,15.056,412,1.425,65.364,0.921,0.1187
+2L_4D.png,36402,33.761,29156,1557,18.726,642,1.457,49.416,0.938,0.2314
