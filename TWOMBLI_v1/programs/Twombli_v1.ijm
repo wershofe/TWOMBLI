@@ -64,7 +64,7 @@ var EOL = "\n";
 var PARAM_FILE_NAME = "parameters.txt";
 var HDM_RESULTS_FILENAME = "_ResultsHDM.csv";
 var ANAMORF_RESULTS_FILENAME = "results.csv";
-var TWOMBLI_RESULTS_FILENAME = "Twombli_Results.csv";
+var TWOMBLI_RESULTS_FILENAME = "Twombli_Results";
 
 // global variables with default values
 var contrastSaturation = 0.35;
@@ -378,7 +378,7 @@ print("Once you have decided the curvature window that works for all masks, clic
 	wait(1000);
 	print("Once you have decided maximum display values click OK and enter this value when prompted");
 	wait(1000);
-	waitForUser("Choose maximum display values to filter out background, then click 'OK'"); 
+	waitForUser("Choose maximum display values (by sliding the second bar in the B&C box) to filter out background, then click 'OK'"); 
 	wait(1000);
 	print("Enter maximum display value");
 	maximumDisplayHDM = getNumber("maximum display HDM", 200); 
@@ -391,6 +391,7 @@ print("Once you have decided the curvature window that works for all masks, clic
 
 	openFolder(outputTestHDM);
 	print("\n You have thresholded your images to compute high-density matrix (HDM)");
+	waitForUser("Once you have looked at these images, click OK"); 
 	print("\n Are these images mostly black (background) with some light pixels (high density matrix)? ");
 	happyWithHDM = getBoolean("Are these images mostly black (background) with some light areas (high density matrix)? Click no to repeat this step");
 	}
@@ -608,7 +609,7 @@ if(gapAnalysis==true)
 }
 
 tidyResults(outputHDM, inputAnamorf, inputEligible, alignmentVec);
-print("FINISHED!");
+print("FINISHED EVERYTHING!");
 /*
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
@@ -798,7 +799,7 @@ function searchForFile(input, targetPath, target) {
 }
 
 function saveParameterFile(){
-	print("Specify where you want your parameter file to be saved, you can use this again in future");
+	print("Save the parameter file somewhere sensible so you can use these parameters again");
 	parameterFilePath = getDirectory("Specify location for parameter file") + File.separator + PARAM_FILE_NAME;
 	print("Saving parameter file in " + parameterFilePath);
 	if(File.exists(parameterFilePath)){
@@ -1067,6 +1068,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 				hdmIndex =  matchHDMResult(anaMorfLine[0], hdmResults);
 				hdmLine = split(hdmResults[hdmIndex], ",");
 				hdm = hdmLine[hdmLine.length - 1];
+				hdm = 1-hdm;
 			}
 			
 			line = anaMorfResults[i] + "," + hdm + "," + alignmentVec[hdmIndex];
