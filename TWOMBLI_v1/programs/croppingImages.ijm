@@ -77,11 +77,7 @@ function selectRegions(input, file){
 			saveAs("PNG", outputCroppedFolder + File.separator + "cropped_" + file );
 		}
 		else {
-			open(input + File.separator + file);
-			roiManager("Show All");
-			run("Flatten");
-			saveAs("Tiff", outputCroppedFolder + File.separator + "allRegions_" + file );
-			close();
+			
 			for (i=0; i<roiManager("count"); ++i) {
 				open(input + File.separator + file);
 				rename("Original");
@@ -91,11 +87,23 @@ function selectRegions(input, file){
 		    	run("Crop");
 		        saveAs("Tiff", outputCroppedFolder + File.separator + "cropped_region_" + i + "_" + file );
 		    }
+		   
+			h = getHeight();
+			w = getWidth();
+			max = maxOf(h, w);
+			lwd = floor(max/100);
+			print(lwd);
+		    open(input + File.separator + file);
+		    roiManager("Set Line Width", lwd);
+			roiManager("Show All");
+			run("Flatten");
+			saveAs("Tiff", outputCroppedFolder + File.separator + "allRegions_" + file );
+			close();
 		}
 
 	} else{
 		regionsToKeep=false;
-		print("Open your image. Draw regions you want to remove and add to ROI manager");
+		print("Draw regions you want to remove and add to ROI manager");
 		print("Once you have drawn all regions you want to remove, click OK");
 		waitForUser("Once you have drawn all regions you want to remove, click OK");
 		// roiManager("Add");
