@@ -32,6 +32,7 @@ function cropFolder(input) {
 	function cropFile(input, file) {
 		reopenROI();
 		open(input + File.separator + file);
+		rename("Original");
 		selectRegions(input, file);
 	}
 
@@ -79,15 +80,16 @@ function selectRegions(input, file){
 		else {
 			
 			for (i=0; i<roiManager("count"); ++i) {
-				open(input + File.separator + file);
-				rename("Original");
+				selectImage("Original");
 		    	run("Duplicate...", " ");
 				copy = getImageID();
 		    	roiManager("Select", i);
 		    	run("Crop");
 		        saveAs("Tiff", outputCroppedFolder + File.separator + "cropped_region_" + i + "_" + file );
+		        close();
 		    }
-		   
+		    selectImage("Original");
+		    run("Duplicate...", " ");
 			h = getHeight();
 			w = getWidth();
 			max = maxOf(h, w);
