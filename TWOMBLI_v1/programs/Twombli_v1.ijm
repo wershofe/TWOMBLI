@@ -343,7 +343,11 @@ print("Once you have decided the curvature window that works for all masks, clic
 		wait(1000);
 		waitForUser("Decide minimum gap diameter, then click 'OK'"); 
 
-		minimumGapDiameter = getNumber("minimum gap diameter", minimumGapDiameter);
+		w = getWidth();
+		h = getHeight();
+		l= floor((w+h)/60);
+
+		minimumGapDiameter = getNumber("minimum gap diameter", l);
 	} else{
 		minimumGapDiameter = 0;
 	}
