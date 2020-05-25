@@ -546,6 +546,8 @@ wait(1000);
 print("Now computing alignment");
 alignmentVec=newArray(0);
 alignmentVec = processFolderAlignment(outputMasks);	
+var alignmentVecOrder = getAlignmentVecOrder(outputMasks);
+print("Finished computing alignment");
 close("*"); 
 /*
  ------------------------------------------------------------------------------------------------------------------------------
@@ -1006,17 +1008,37 @@ function closeROI() {
 function processFolderAlignment(input) { // this should be outputMasks folder
 	list = getFileList(input);
 	list = Array.sort(list);
-	var alignmentVec = newArray(list.length+1);
-	alignmentVec[0] = "Alignment";
-	for (i = 0; i < list.length; i++) {
-		if(endsWith(list[i],"png"))
-		{
-			processFileAlignment(input, list[i], alignmentVec, i);
+	list2 = newArray(0);
+	anamorfIndex = 0;
+	for (j = 0; j < list.length; j++) {
+		if(startsWith(list[j], 'AnaMorf')){
+			anamorfIndex = j;
+		} else {
+			list2=append(list2,list[j]);
 		}
 	}
-//	print("This is the alignmentVec:");
-//	Array.print(alignmentVec);
+
+	alignmentVec = newArray(list2.length);
+
+	for (i = 0; i < list2.length; i++) {
+		processFileAlignment(input, list2[i], alignmentVec, i);
+	}
 	return alignmentVec;
+}
+
+function getAlignmentVecOrder(input) { // this should be outputMasks folder
+	list = getFileList(input);
+	list = Array.sort(list);
+	list2 = newArray(0);
+	anamorfIndex = 0;
+	for (j = 0; j < list.length; j++) {
+		if(startsWith(list[j], 'AnaMorf')){
+			anamorfIndex = j;
+		} else {
+			list2=append(list2,list[j]);
+		}
+	}
+	return list2;
 }
 
 
@@ -1029,7 +1051,7 @@ function processFileAlignment(input,  file, alignmentVec, i) {
 	T=getTitle();
 	run("OrientationJ Dominant Direction");
 	IJ.renameResults("Dominant Direction of "+T,"Results");
-	alignmentVec[i+1]=getResult("Coherency [%]",0);
+	alignmentVec[i]=getResult("Coherency [%]",0);
 
 	run("Clear Results");
 	close("*");
@@ -1067,15 +1089,20 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 			}
 			if(i==0){
 				hdm = "% High Density Matrix";
+				alignment = "Alignment";
 			} else {
 				anaMorfLine = split(anaMorfResults[i], ",");
 				hdmIndex =  matchHDMResult(anaMorfLine[0], hdmResults);
 				hdmLine = split(hdmResults[hdmIndex], ",");
 				hdm = hdmLine[hdmLine.length - 1];
 				hdm = 1-hdm;
+
+				alignmentIndex = matchAlignmentResult(anaMorfLine[0]);
+				alignment = alignmentVec[alignmentIndex];
 			}
+
 			
-			line = anaMorfResults[i] + "," + hdm + "," + alignmentVec[hdmIndex];
+			line = anaMorfResults[i] + "," + hdm + "," + alignment;
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
@@ -1087,6 +1114,15 @@ function matchHDMResult(imageName, hdmResults){
 		line = hdmResults[i];
 		splitLine = split(line, ",");
 		if(matches(imageName, splitLine[1])){
+			return i;
+		}
+	}
+	return -1;
+}
+
+function matchAlignmentResult(imageName){
+	for(i = 0; i < alignmentVecOrder.length; i++){
+		if(matches(imageName, alignmentVecOrder[i])){
 			return i;
 		}
 	}
