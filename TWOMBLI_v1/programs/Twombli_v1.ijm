@@ -546,6 +546,7 @@ wait(1000);
 print("Now computing alignment");
 alignmentVec=newArray(0);
 alignmentVec = processFolderAlignment(outputMasks);	
+var dimensionsVec = processFolderDimensions(outputMasks);
 var alignmentVecOrder = getAlignmentVecOrder(outputMasks);
 print("Finished computing alignment");
 close("*"); 
@@ -1058,6 +1059,34 @@ function processFileAlignment(input,  file, alignmentVec, i) {
 	setBatchMode(false);
 }
 
+function processFolderDimensions(input){
+	list = getFileList(input);
+	list = Array.sort(list);
+	list2 = newArray(0);
+	anamorfIndex = 0;
+	for (j = 0; j < list.length; j++) {
+		if(startsWith(list[j], 'AnaMorf')){
+			anamorfIndex = j;
+		} else {
+			list2=append(list2,list[j]);
+		}
+	}
+
+	dimensionVec = newArray(list2.length);
+
+	for (i = 0; i < list2.length; i++) {
+		file = list2[i];
+		setBatchMode(true);
+		open(input + File.separator + file);
+
+		h=getHeight();
+		w=getWidth();
+		dimensionVec[i]=h*w;
+		close("*");
+		setBatchMode(false);
+	}
+	return dimensionVec;
+}
 
 function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 	hdmResultsFile = outputHDM + File.separator + HDM_RESULTS_FILENAME;
@@ -1090,6 +1119,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 			if(i==0){
 				hdm = "% High Density Matrix";
 				alignment = "Alignment";
+				dimension = "TotalImageArea";
 			} else {
 				anaMorfLine = split(anaMorfResults[i], ",");
 				hdmIndex =  matchHDMResult(anaMorfLine[0], hdmResults);
@@ -1099,10 +1129,11 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 
 				alignmentIndex = matchAlignmentResult(anaMorfLine[0]);
 				alignment = alignmentVec[alignmentIndex];
+				dimension = dimensionsVec[alignmentIndex];
 			}
 
 			
-			line = anaMorfResults[i] + "," + hdm + "," + alignment;
+			line = anaMorfResults[i] + "," + hdm + "," + alignment + "," + dimension;
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
