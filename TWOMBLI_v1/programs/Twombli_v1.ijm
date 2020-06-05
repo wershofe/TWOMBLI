@@ -42,6 +42,7 @@
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
 */
+run("Options...", "iterations=1 count=1");
 
 // closes and clears anything already open
 run("Close All");
@@ -894,10 +895,6 @@ function processFolderGap(input) {
 }
 
 function processFileGap(input,  file,gapAnalysisFile) {
-	// Do the processing here by adding your own code.
-	// Leave the print statements until things work, then remove them.
-	
-	
 	setBatchMode(true);
 	
 	print("Performing gap analysis on ", file);
@@ -906,19 +903,14 @@ function processFileGap(input,  file,gapAnalysisFile) {
 	run("Clear Results");
 	
 	open(input + File.separator + file);
-	
-	run("Invert");
+
 	w = getWidth();
 	h = getHeight();
-	makeRectangle(1, 1, w-20, h-20);
+	makeRectangle(1, 1, w-2, h-2);
 	run("Crop");
-	run("Invert");
-	run("Canvas Size...", "width="+w+" height="+h+" position=Center");
-    run("Make Binary");
-    run("Invert");
+	run("Canvas Size...", "width="+w+" height="+h+" position=Center zero");
 
-
-	run("Max Inscribed Circles", "minimum=" + minimumGapDiameter + " use minimum_0=0.50 closeness=5");
+	run("Max Inscribed Circles", "minimum=30 use minimum_0=0.50 closeness=5");
 	roiManager("Show All");
 	run("Flatten");
 	saveAs("tif", input + "/GapAnalysis/"+file +"_GapImage.tif");
@@ -1078,7 +1070,6 @@ function processFolderDimensions(input){
 		file = list2[i];
 		setBatchMode(true);
 		open(input + File.separator + file);
-
 		h=getHeight();
 		w=getWidth();
 		dimensionVec[i]=h*w;
