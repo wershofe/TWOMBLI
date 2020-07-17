@@ -7,3 +7,5 @@ Documentation can be found inside the TWOMBLI folder
 
 A video tutorial can be found here: https://bmm.crick.ac.uk/TWOMBLI/
 
+The corresponding manuscript for TWOMBLI can be found here: https://www.biorxiv.org/content/10.1101/867507v4.  
+If TWOMBLI is useful in your work, please cite the manuscript.
