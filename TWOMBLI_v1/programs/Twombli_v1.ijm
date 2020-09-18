@@ -839,7 +839,7 @@ function loadParameterFile(){
 		if(matches(words[0], CONTRAST_SATURATION)){
 			contrastSaturation = parseFloat(words[1]);
 		} else if(matches(words[0], LINE_WIDTH)){
-			lineWidthValue = parseFloat(words[1]);
+			lineWidth = parseFloat(words[1]);
 		} else if(matches(words[0], CURVATURE_WINDOW)){
 			curvatureWindow = parseFloat(words[1]);
 		} else if(matches(words[0], MINIMUM_BRANCH_LENGTH)){
