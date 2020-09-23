@@ -42,6 +42,7 @@
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
 */
+run("Options...", "iterations=1 count=1");
 
 run("Options...", "iterations=1 count=1");
 
@@ -840,7 +841,7 @@ function loadParameterFile(){
 		if(matches(words[0], CONTRAST_SATURATION)){
 			contrastSaturation = parseFloat(words[1]);
 		} else if(matches(words[0], LINE_WIDTH)){
-			lineWidthValue = parseFloat(words[1]);
+			lineWidth = parseFloat(words[1]);
 		} else if(matches(words[0], CURVATURE_WINDOW)){
 			curvatureWindow = parseFloat(words[1]);
 		} else if(matches(words[0], MINIMUM_BRANCH_LENGTH)){
@@ -896,10 +897,6 @@ function processFolderGap(input) {
 }
 
 function processFileGap(input,  file,gapAnalysisFile) {
-	// Do the processing here by adding your own code.
-	// Leave the print statements until things work, then remove them.
-	
-	
 	setBatchMode(true);
 	
 	print("Performing gap analysis on ", file);
@@ -908,18 +905,13 @@ function processFileGap(input,  file,gapAnalysisFile) {
 	run("Clear Results");
 	
 	open(input + File.separator + file);
-	
-	//run("Invert");
+
 	w = getWidth();
 	h = getHeight();
-	makeRectangle(1, 1, w-20, h-20);
+	makeRectangle(1, 1, w-2, h-2);
 	run("Crop");
-	//run("Invert");
 	run("Canvas Size...", "width="+w+" height="+h+" position=Center zero");
-    //run("Make Binary");
-    //run("Invert");
-
-	run("Max Inscribed Circles", "minimum=30 use minimum_0=0.50 closeness=5");
+	run("Max Inscribed Circles", "minimum=30 use minimum_0=0.50 closeness=5");
 	roiManager("Show All");
 	roiManager("Set Color", "red");
 	roiManager("Set Line Width", 3);
@@ -1081,7 +1073,6 @@ function processFolderDimensions(input){
 		file = list2[i];
 		setBatchMode(true);
 		open(input + File.separator + file);
-
 		h=getHeight();
 		w=getWidth();
 		dimensionVec[i]=h*w;
