@@ -43,6 +43,8 @@
  ------------------------------------------------------------------------------------------------------------------------------
 */
 
+run("Options...", "iterations=1 count=1");
+
 // closes and clears anything already open
 run("Close All");
 
@@ -72,7 +74,7 @@ var lineWidth = 5;
 var curvatureWindow = 50;
 var minimumBranchLength = 10;
 var maximumDisplayHDM = 200;
-var gapAnalysis = false;
+var gapAnalysis = true;
 var minimumGapDiameter = 30;
 
 var contrastHigh = 120.0;
@@ -907,21 +909,22 @@ function processFileGap(input,  file,gapAnalysisFile) {
 	
 	open(input + File.separator + file);
 	
-	run("Invert");
+	//run("Invert");
 	w = getWidth();
 	h = getHeight();
 	makeRectangle(1, 1, w-20, h-20);
 	run("Crop");
-	run("Invert");
-	run("Canvas Size...", "width="+w+" height="+h+" position=Center");
-    run("Make Binary");
-    run("Invert");
+	//run("Invert");
+	run("Canvas Size...", "width="+w+" height="+h+" position=Center zero");
+    //run("Make Binary");
+    //run("Invert");
 
-
-	run("Max Inscribed Circles", "minimum=" + minimumGapDiameter + " use minimum_0=0.50 closeness=5");
+	run("Max Inscribed Circles", "minimum=30 use minimum_0=0.50 closeness=5");
 	roiManager("Show All");
+	roiManager("Set Color", "red");
+	roiManager("Set Line Width", 3);
 	run("Flatten");
-	saveAs("tif", input + "/GapAnalysis/"+file +"_GapImage.tif");
+	saveAs("png", input + "/GapAnalysis/"+file +"_GapImage.png");
 	
 	roiManager("Measure");
 
