@@ -1,5 +1,6 @@
 Contrast Saturation,0.35
-Line Width,5
+Min Line Width,5
+Max Line Width,10
 Min Curvature Window,40
 Max Curvature Window,60
 Minimum Branch Length,5

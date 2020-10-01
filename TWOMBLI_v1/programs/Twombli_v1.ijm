@@ -54,7 +54,8 @@ if (isOpen("Log")) {
 
 // declaring global variables
 var CONTRAST_SATURATION = "Contrast Saturation";
-var LINE_WIDTH = "Line Width";
+var MIN_LINE_WIDTH = "Min Line Width";
+var MAX_LINE_WIDTH = "Max Line Width";
 var MIN_CURVATURE_WINDOW = "Min Curvature Window";
 var MAX_CURVATURE_WINDOW = "Max Curvature Window";
 var MINIMUM_BRANCH_LENGTH = "Minimum Branch Length";
@@ -70,7 +71,9 @@ var TWOMBLI_RESULTS_FILENAME = "Twombli_Results";
 
 // global variables with default values
 var contrastSaturation = 0.35;
-var lineWidth = 5;
+var minLineWidth = 5;
+var maxLineWidth = 10;
+var lineWidthStep = 1;
 var minCurvatureWindow = 40;
 var maxCurvatureWindow = 60;
 var curvatureWindowStep = 10;
@@ -273,22 +276,14 @@ print("Choosing sensible parameters...");
 		    run("8-bit");
 		}
 		
-		lineWidth = getNumber("Enter a proposed line width ", lineWidth); // ask user to input 
+		minLineWidth = getNumber("Enter a proposed min line width ", minLineWidth); // ask user to input 
+		maxLineWidth = getNumber("Enter a proposed max line width ", maxLineWidth); // ask user to input 
 		
 		// doing ridge detection
 		titles = getList("image.titles");
 		for(j=0; j<titles.length;j++){
 			selectWindow(titles[j]);
-			sigma = calcSigma();
-						lowerThresh = calcLowerThresh(sigma);
-						upperThresh = calcUpperThresh(sigma);
-						
-						if(darkline==true)
-						{
-							run("Ridge Detection", "line_width=" + lineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=0 maximum=0");
-						}else {
-							run("Ridge Detection", "line_width=" + lineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=0 maximum=0");
-						}
+			runMultiScaleRidgeDetection();
 		    run("Out [-]"); 
 		} 
 
@@ -419,7 +414,8 @@ print("Once you have decided the curvature window that works for all masks, clic
 	Dialog.create("Recap values");
 	// User can override any values here
 	Dialog.addNumber("contrastSaturation:", contrastSaturation);
-	Dialog.addNumber("lineWidth:", lineWidth);
+	Dialog.addNumber("minlineWidth:", minLineWidth);
+	Dialog.addNumber("maxlineWidth:", maxLineWidth);
 	Dialog.addNumber("minCurvatureWindow:", minCurvatureWindow);
 	Dialog.addNumber("maxCurvatureWindow:", maxCurvatureWindow);
 	Dialog.addNumber("minimumBranchLength:", minimumBranchLength);
@@ -430,7 +426,8 @@ print("Once you have decided the curvature window that works for all masks, clic
 	Dialog.show();
 	
 	contrastSaturation = Dialog.getNumber();
-	lineWidth = Dialog.getNumber();
+	minLineWidth = Dialog.getNumber();
+	maxLineWidth = Dialog.getNumber();
 	minCurvatureWindow = Dialog.getNumber();
 	maxCurvatureWindow = Dialog.getNumber();
 	minimumBranchLength = Dialog.getNumber();
@@ -713,16 +710,7 @@ function processFileRidgeDetection(input, output, file) {
 	
 	run("8-bit");
 
-	sigma = calcSigma();
-	lowerThresh = calcLowerThresh(sigma);
-	upperThresh = calcUpperThresh(sigma);
-	
-	if(darkline==true)
-	{
-		run("Ridge Detection", "line_width=" + lineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=0 maximum=0");
-	}else {
-		run("Ridge Detection", "line_width=" + lineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=0 maximum=0");
-	}
+	runMultiScaleRidgeDetection();
 
 	// Invert LUT
 	getLut(reds, greens, blues);
@@ -828,7 +816,8 @@ function saveParameterFile(){
 	parameterFile = File.open(parameterFilePath);
 
 	print(parameterFile, CONTRAST_SATURATION + DELIM + contrastSaturation + EOL);
-	print(parameterFile, LINE_WIDTH + DELIM + lineWidth + EOL);
+	print(parameterFile, MIN_LINE_WIDTH + DELIM + minLineWidth + EOL);
+	print(parameterFile, MAX_LINE_WIDTH + DELIM + maxLineWidth + EOL);
 	print(parameterFile, MIN_CURVATURE_WINDOW + DELIM + minCurvatureWindow + EOL);
 	print(parameterFile, MAX_CURVATURE_WINDOW + DELIM + maxCurvatureWindow + EOL);
 	print(parameterFile, MINIMUM_BRANCH_LENGTH + DELIM + minimumBranchLength + EOL);
@@ -851,8 +840,10 @@ function loadParameterFile(){
 		words = split(lines[i], DELIM);
 		if(matches(words[0], CONTRAST_SATURATION)){
 			contrastSaturation = parseFloat(words[1]);
-		} else if(matches(words[0], LINE_WIDTH)){
-			lineWidth = parseFloat(words[1]);
+		} else if(matches(words[0], MIN_LINE_WIDTH)){
+			minLineWidth = parseFloat(words[1]);
+		} else if(matches(words[0], MAX_LINE_WIDTH)){
+			maxLineWidth = parseFloat(words[1]);
 		} else if(matches(words[0], MIN_CURVATURE_WINDOW)){
 			minCurvatureWindow = parseFloat(words[1]);
 		} else if(matches(words[0], MAX_CURVATURE_WINDOW)){
@@ -871,11 +862,11 @@ function loadParameterFile(){
 // Functions to calculate ridge detection parameters, taken from:
 // https://github.com/thorstenwagner/ij-ridgedetection/blob/master/src/main/java/de/biomedical_imaging/ij/steger/Lines_.java
 
-function calcSigma(){
+function calcSigma(lineWidth){
 	return lineWidth / (2 * sqrt(3)) + 0.5;
 }
 
-function calcLowerThresh(estimatedSigma){
+function calcLowerThresh(lineWidth, estimatedSigma){
 	clow=contrastLow;
 	if(darkline){
 		clow = 255 - contrastHigh;
@@ -885,7 +876,7 @@ function calcLowerThresh(estimatedSigma){
 					* exp(-((lineWidth / 2.0) * (lineWidth / 2.0)) / (2 * estimatedSigma * estimatedSigma))));
 }
 
-function calcUpperThresh(estimatedSigma){
+function calcUpperThresh(lineWidth, estimatedSigma){
 	chigh = contrastHigh;
 	if (darkline) {
 		chigh = 255 - contrastLow;
@@ -1190,4 +1181,35 @@ function matchAlignmentResult(imageName){
 		}
 	}
 	return -1;
+}
+
+function runMultiScaleRidgeDetection(){
+	input = getTitle();
+	sigma = calcSigma(minLineWidth);
+	lowerThresh = calcLowerThresh(minLineWidth, sigma);
+	upperThresh = calcUpperThresh(minLineWidth, sigma);
+	if(darkline){
+			run("Ridge Detection", "line_width=" + minLineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=0 maximum=0");
+		} else{
+			run("Ridge Detection", "line_width=" + minLineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=0 maximum=0");
+		}
+	result = getTitle();
+	
+	for(lw = minLineWidth + 1; lw <= maxLineWidth; lw++){
+		sigma = calcSigma(lw);
+		lowerThresh = calcLowerThresh(lw, sigma);
+		upperThresh = calcUpperThresh(lw, sigma);
+		selectWindow(input);
+		if(darkline){
+			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=0 maximum=0");
+		} else{
+			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=0 maximum=0");
+		}
+		this_result = getTitle();
+		imageCalculator("OR create", result, this_result);
+		temp = result;
+		result = getTitle();
+		close(temp);
+		close(this_result);
+	}
 }
