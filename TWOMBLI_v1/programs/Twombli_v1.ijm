@@ -44,8 +44,6 @@
 */
 run("Options...", "iterations=1 count=1");
 
-run("Options...", "iterations=1 count=1");
-
 // closes and clears anything already open
 run("Close All");
 
@@ -57,7 +55,8 @@ if (isOpen("Log")) {
 // declaring global variables
 var CONTRAST_SATURATION = "Contrast Saturation";
 var LINE_WIDTH = "Line Width";
-var CURVATURE_WINDOW = "Curvature Window";
+var MIN_CURVATURE_WINDOW = "Min Curvature Window";
+var MAX_CURVATURE_WINDOW = "Max Curvature Window";
 var MINIMUM_BRANCH_LENGTH = "Minimum Branch Length";
 var MAXIMUM_DISPLAY_HDM = "Maximum Display HDM";
 //var GAP_ANALYSIS = "GapAnalysis";
@@ -72,7 +71,9 @@ var TWOMBLI_RESULTS_FILENAME = "Twombli_Results";
 // global variables with default values
 var contrastSaturation = 0.35;
 var lineWidth = 5;
-var curvatureWindow = 50;
+var minCurvatureWindow = 40;
+var maxCurvatureWindow = 60;
+var curvatureWindowStep = 10;
 var minimumBranchLength = 10;
 var maximumDisplayHDM = 200;
 var gapAnalysis = true;
@@ -320,9 +321,10 @@ print("Once you have decided the curvature window that works for all masks, clic
 		wait(1000);
 		waitForUser("Decide curvature window, then click 'OK'"); 
 		print("Enter curvature window that works for all test images");
-		curvatureWindow = getNumber("curvature window", curvatureWindow); 
+		minCurvatureWindow = getNumber("Min curvature window", minCurvatureWindow); 
+		maxCurvatureWindow = getNumber("Max curvature window", maxCurvatureWindow); 
 // curvature window was declared globally at start with value of 50.
-		minimumBranchLength = curvatureWindow/10; 
+		minimumBranchLength = minCurvatureWindow/10; 
 // by default this is set to curvatureWindow/10 but can be altered later by the user
 		wait(1000);
 		happyCurvature=getBoolean("Are you happy with the curvature window? (Click no if you want to repeat this step)");
@@ -418,7 +420,8 @@ print("Once you have decided the curvature window that works for all masks, clic
 	// User can override any values here
 	Dialog.addNumber("contrastSaturation:", contrastSaturation);
 	Dialog.addNumber("lineWidth:", lineWidth);
-	Dialog.addNumber("curvatureWindow:", curvatureWindow);
+	Dialog.addNumber("minCurvatureWindow:", minCurvatureWindow);
+	Dialog.addNumber("maxCurvatureWindow:", maxCurvatureWindow);
 	Dialog.addNumber("minimumBranchLength:", minimumBranchLength);
 	Dialog.addNumber("maximumDisplayHDM:", maximumDisplayHDM);
 	if(gapAnalysis==true){
@@ -428,7 +431,8 @@ print("Once you have decided the curvature window that works for all masks, clic
 	
 	contrastSaturation = Dialog.getNumber();
 	lineWidth = Dialog.getNumber();
-	curvatureWindow = Dialog.getNumber();
+	minCurvatureWindow = Dialog.getNumber();
+	maxCurvatureWindow = Dialog.getNumber();
 	minimumBranchLength = Dialog.getNumber();
 	maximumDisplayHDM = Dialog.getNumber();
 	if(gapAnalysis==true){
@@ -538,9 +542,15 @@ Ext.initialiseAnaMorf(inputAnamorf,anamorfProperties);
 
 Ext.setAnaMorfFileType("PNG");
 // don't worry about this - the masks generated are of png type, so this should be left alone
-Ext.setAnaMorfCurvatureWindow(curvatureWindow);
+Ext.setAnaMorfCurvatureWindow(minCurvatureWindow);
 Ext.setAnaMorfMinBranchLength(minimumBranchLength);
 Ext.runAnaMorf();
+
+for(c = minCurvatureWindow + curvatureWindowStep; c <= maxCurvatureWindow; c += curvatureWindowStep){
+	Ext.resetParameters();
+	Ext.setAnaMorfCurvatureWindow(c);
+	Ext.runAnaMorf();	
+}
 
 wait(1000);
 print("HERE exiting anamorf");
@@ -819,7 +829,8 @@ function saveParameterFile(){
 
 	print(parameterFile, CONTRAST_SATURATION + DELIM + contrastSaturation + EOL);
 	print(parameterFile, LINE_WIDTH + DELIM + lineWidth + EOL);
-	print(parameterFile, CURVATURE_WINDOW + DELIM + curvatureWindow + EOL);
+	print(parameterFile, MIN_CURVATURE_WINDOW + DELIM + minCurvatureWindow + EOL);
+	print(parameterFile, MAX_CURVATURE_WINDOW + DELIM + maxCurvatureWindow + EOL);
 	print(parameterFile, MINIMUM_BRANCH_LENGTH + DELIM + minimumBranchLength + EOL);
 	print(parameterFile, MAXIMUM_DISPLAY_HDM + DELIM + maximumDisplayHDM + EOL);
 	print(parameterFile, MINIMUM_GAP_DIAMETER + DELIM + minimumGapDiameter + EOL);
@@ -842,8 +853,10 @@ function loadParameterFile(){
 			contrastSaturation = parseFloat(words[1]);
 		} else if(matches(words[0], LINE_WIDTH)){
 			lineWidth = parseFloat(words[1]);
-		} else if(matches(words[0], CURVATURE_WINDOW)){
-			curvatureWindow = parseFloat(words[1]);
+		} else if(matches(words[0], MIN_CURVATURE_WINDOW)){
+			minCurvatureWindow = parseFloat(words[1]);
+		} else if(matches(words[0], MAX_CURVATURE_WINDOW)){
+			maxCurvatureWindow = parseFloat(words[1]);
 		} else if(matches(words[0], MINIMUM_BRANCH_LENGTH)){
 			minimumBranchLength = parseFloat(words[1]);
 		} else if(matches(words[0], MAXIMUM_DISPLAY_HDM)){
