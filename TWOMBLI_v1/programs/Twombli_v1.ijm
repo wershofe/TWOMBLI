@@ -1101,14 +1101,31 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 	anaMorfFiles = getFileList(inputAnamorf);
 	anaMorfFolderIndex = -1;
 	for(i=0; i < anaMorfFiles.length; i++){
-		if(File.isDirectory(inputAnamorf + File.separator + anaMorfFiles[i]) && startsWith(anaMorfFiles[i], "AnaMorf")){
+		if(checkIsAnaMorf(inputAnamorf, anaMorfFiles[i])){
 			anaMorfFolderIndex = i;
 			break;
 		}
 	}
 	if(anaMorfFolderIndex > -1){
-		anaMorfResultsFile = inputAnamorf + File.separator + anaMorfFiles[anaMorfFolderIndex] + File.separator + ANAMORF_RESULTS_FILENAME;
-		anaMorfResults = split(File.openAsString(anaMorfResultsFile), "\n");
+		anaMorfResults = newArray(0);
+		for(j=0; j < anaMorfFiles.length; j++){
+			if(checkIsAnaMorf(inputAnamorf, anaMorfFiles[j])){
+				anaMorfResultsFile = inputAnamorf + File.separator + anaMorfFiles[j] + File.separator + ANAMORF_RESULTS_FILENAME;
+				currentAnaMorfResults = split(File.openAsString(anaMorfResultsFile), "\n");
+				if(anaMorfResults.length < 1){
+					anaMorfResults = currentAnaMorfResults;
+				} else{
+					for(k=0; k<anaMorfResults.length;k++){
+						anaMorfLine = split(currentAnaMorfResults[k], ",");
+						if(k==0){
+							anaMorfResults[k] = anaMorfResults[k] + "," + anaMorfLine[1] + "_" + (j - anaMorfFolderIndex);
+						}else{
+							anaMorfResults[k] = anaMorfResults[k] + "," + anaMorfLine[1];
+						}
+					}
+				}
+			}
+		}
 		baseOutputFilepath = File.getParent(outputHDM) + File.separator + TWOMBLI_RESULTS_FILENAME;
 		outputFilepath = baseOutputFilepath + ".csv";
 		count = 1;
@@ -1144,6 +1161,14 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 			print(twombliResultsFile, line);
 		}
 		File.close(twombliResultsFile);
+	}
+}
+
+function checkIsAnaMorf(inputDir, inputFile){
+	if(File.isDirectory(inputDir + File.separator + inputFile) && startsWith(inputFile, "AnaMorf")){
+		return true;
+	} else {
+		return false;
 	}
 }
 
