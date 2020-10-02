@@ -1108,11 +1108,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 				} else{
 					for(k=0; k<anaMorfResults.length;k++){
 						anaMorfLine = split(currentAnaMorfResults[k], ",");
-						if(k==0){
-							anaMorfResults[k] = anaMorfResults[k] + "," + anaMorfLine[1] + "_" + (j - anaMorfFolderIndex);
-						}else{
-							anaMorfResults[k] = anaMorfResults[k] + "," + anaMorfLine[1];
-						}
+						anaMorfResults[k] = anaMorfResults[k] + "," + anaMorfLine[1];
 					}
 				}
 			}
