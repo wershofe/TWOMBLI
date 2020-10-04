@@ -72,10 +72,10 @@ var TWOMBLI_RESULTS_FILENAME = "Twombli_Results";
 // global variables with default values
 var contrastSaturation = 0.35;
 var minLineWidth = 5;
-var maxLineWidth = 10;
+var maxLineWidth = 5;
 var lineWidthStep = 1;
 var minCurvatureWindow = 40;
-var maxCurvatureWindow = 60;
+var maxCurvatureWindow = 40;
 var curvatureWindowStep = 10;
 var minimumBranchLength = 10;
 var maximumDisplayHDM = 200;
@@ -257,7 +257,7 @@ print("Choosing sensible parameters...");
 	
 	// get user to choose line width for ridge detection
 	wait(1000);
-	print("\n Step 5: Choosing line width for ridge detection. (See Documentation Figure 4");
+	print("\n Step 5: Choosing line width(s) for ridge detection. (See Documentation Figure 4)");
 	wait(1000);
 	darkline = getBoolean("Are the matrix fibres dark on a light background?"); //thresholding different depending if image is on light or dark background
 	wait(1000);
@@ -275,7 +275,12 @@ print("Choosing sensible parameters...");
 		    run("Enhance Contrast", "saturated=" + contrastSaturation);
 		    run("8-bit");
 		}
-		
+//		wait(1000);
+//		print("\n If you are happy to use a single line width, set minLineWidth and maxLineWidth to same value");
+//		print("\n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)");
+		wait(1000);
+
+		waitForUser("\n If you are happy to use a single line width, set minLineWidth and maxLineWidth to same value. \n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)"); 
 		minLineWidth = getNumber("Enter a proposed min line width ", minLineWidth); // ask user to input 
 		maxLineWidth = getNumber("Enter a proposed max line width ", maxLineWidth); // ask user to input 
 		
@@ -289,7 +294,7 @@ print("Choosing sensible parameters...");
 
 		// gives user chance to run ridge detection again with different line width
 		waitForUser("Once you have compared the masks with the images, click OK"); 
-		happyLineWidth=getBoolean("Are you happy with the masks produced with this line width? (Click no if you want to repeat this step)");
+		happyLineWidth=getBoolean("Are you happy with the masks produced with this line width(s)? (Click no if you want to repeat this step)");
 	}
 	wait(1000);
 
@@ -312,17 +317,20 @@ print("Choosing sensible parameters...");
 		wait(1000);
 		 
 		
-print("Once you have decided the curvature window that works for all masks, click OK and enter the value when prompted");
+print("Once you have decided the curvature window(s) that works for all masks, click OK and enter the value when prompted");
 		wait(1000);
-		waitForUser("Decide curvature window, then click 'OK'"); 
-		print("Enter curvature window that works for all test images");
+		waitForUser("Decide curvature window(s), then click 'OK'"); 
+		print("Enter curvature window(s) that works for all test images");
+
+		waitForUser("\n If you are happy to use a single curvature window, set minCurvatureWindow and maxCurvatureWindow to same value. \n Setting minCurvatureWindow and maxCurvatureWindow to different values will provide more detailed curvature output (but may take longer)"); 
+		wait(1000);
 		minCurvatureWindow = getNumber("Min curvature window", minCurvatureWindow); 
 		maxCurvatureWindow = getNumber("Max curvature window", maxCurvatureWindow); 
 // curvature window was declared globally at start with value of 50.
 		minimumBranchLength = minCurvatureWindow/10; 
 // by default this is set to curvatureWindow/10 but can be altered later by the user
 		wait(1000);
-		happyCurvature=getBoolean("Are you happy with the curvature window? (Click no if you want to repeat this step)");
+		happyCurvature=getBoolean("Are you happy with the curvature window(s)? (Click no if you want to repeat this step)");
 	}
 
 	/*
