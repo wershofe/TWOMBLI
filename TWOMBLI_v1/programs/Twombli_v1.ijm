@@ -274,7 +274,7 @@ print("Choosing sensible parameters...");
 		if(minLineWidthTest<=1){
 			getNumber("Proposaed min line width is too small, please choose a larger value", minLineWidthTest); // ask user to input 
 		}
-		runTestRidgeDetection(inputTestSet,outputTestMasks);
+		runTestRidgeDetection(inputTestSet,outputTestMasks,5);
 
 		waitForUser("\n Take a look at the output masks with different linewidths and the TestingMultipleLineWidths.csv file to choose an appropriate line width(s)"); 
 
@@ -303,7 +303,7 @@ print("Choosing sensible parameters...");
 		titles = getList("image.titles");
 		for(j=0; j<titles.length;j++){
 			selectWindow(titles[j]);
-			runMultiScaleRidgeDetection();
+			runMultiScaleRidgeDetection(5);
 		    run("Out [-]"); 
 		} 
 
@@ -491,6 +491,7 @@ close("*");
  ------------------------------------------------------------------------------------------------------------------------------
  -----------------------------------------------------------------------------------------------------------------------------
  */
+ 
 // computes ridge detection (to make masks) on all files in eligible folder
 print("\nStep 10: Choosing directories and files");
 wait(11);
@@ -587,7 +588,8 @@ alignmentVec = processFolderAlignment(outputMasks);
 var dimensionsVec = processFolderDimensions(outputMasks);
 var alignmentVecOrder = getAlignmentVecOrder(outputMasks);
 print("Finished computing alignment");
-close("*"); 
+close("*");
+
 /*
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
@@ -617,7 +619,7 @@ close("Results");
 
 setBatchMode(false);
 print("FINISHED HDM!");
-wait(11);
+wait(1000);
 
 
 /*
@@ -631,6 +633,7 @@ wait(11);
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
 */
+
 print("gap analysis = ", gapAnalysis);
 if(gapAnalysis==true)
 {
@@ -652,9 +655,10 @@ if(gapAnalysis==true)
 	print("Gap analysis can be found in output masks folder");
 	print("containing masks with gaps shown, and a summary txt file");
 }
-
+print("Just before tidyResults");
 tidyResults(outputHDM, inputAnamorf, inputEligible, alignmentVec);
 print("FINISHED EVERYTHING!");
+
 /*
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
@@ -739,7 +743,7 @@ function openFile(input, file) {
 	run("Out [-]"); // zoom out
 }	
 
-function runTestRidgeDetection(inputDir,outputDir){
+function runTestRidgeDetection(inputDir,outputDir,lineWidthStep){
 
 fileList = getFileList(inputDir);
 
@@ -764,7 +768,8 @@ for (i = 0; i < fileList.length; i++) {
 	rename("lw_" + minLineWidthTest-1);
 	result = getTitle();
 	
-	for(lw = minLineWidthTest; lw <= maxLineWidthTest; lw++){
+	lw = minLineWidthTest;
+	while(lw<=maxLineWidthTest){
 		sigma = calcSigma(lw);
 		lowerThresh = calcLowerThresh(lw, sigma);
 		upperThresh = calcUpperThresh(lw, sigma);
@@ -782,6 +787,7 @@ for (i = 0; i < fileList.length; i++) {
 		selectWindow(this_result);
 		saveAs("PNG", outputDir + File.separator + fileList[i] + "_mask_" + lw);
 		close();
+		lw = lw + lineWidthStep;
 	}
 	
 //	saveAs("PNG", outputDir + File.separator + fileList[i] + "_composite_mask");
@@ -825,7 +831,7 @@ function processFileRidgeDetection(input, output, file) {
 	
 	run("8-bit");
 
-	runMultiScaleRidgeDetection();
+	runMultiScaleRidgeDetection(1);
 
 	// Invert LUT
 	getLut(reds, greens, blues);
@@ -854,7 +860,7 @@ function processFileRidgeDetection(input, output, file) {
 	setBatchMode(false);
 }
 
-function runMultiScaleRidgeDetection(){
+function runMultiScaleRidgeDetection(lineWidthStep){
 	input = getTitle();
 	sigma = calcSigma(minLineWidth);
 	lowerThresh = calcLowerThresh(minLineWidth, sigma);
@@ -866,7 +872,26 @@ function runMultiScaleRidgeDetection(){
 		}
 	result = getTitle();
 	
-	for(lw = minLineWidth; lw <= maxLineWidth; lw++){
+//	for(lw = minLineWidth; lw <= maxLineWidth; lw++){
+//		sigma = calcSigma(lw);
+//		lowerThresh = calcLowerThresh(lw, sigma);
+//		upperThresh = calcUpperThresh(lw, sigma);
+//		selectWindow(input);
+//		if(darkline){
+//			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+//		} else{
+//			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+//		}
+//		this_result = getTitle();
+//		imageCalculator("OR create", result, this_result);
+//		temp = result;
+//		result = getTitle();
+//		close(temp);
+//		close(this_result);
+//	}
+
+	lw = minLineWidth;
+	while(lw<=maxLineWidth){
 		sigma = calcSigma(lw);
 		lowerThresh = calcLowerThresh(lw, sigma);
 		upperThresh = calcUpperThresh(lw, sigma);
@@ -882,6 +907,7 @@ function runMultiScaleRidgeDetection(){
 		result = getTitle();
 		close(temp);
 		close(this_result);
+		lw = lw + lineWidthStep;
 	}
 }
 
@@ -1242,6 +1268,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 	hdmResults = split(File.openAsString(hdmResultsFile), "\n");
 	anaMorfFiles = getFileList(inputAnamorf);
 	anaMorfFolderIndex = -1;
+	
 	for(i=0; i < anaMorfFiles.length; i++){
 		if(checkIsAnaMorf(inputAnamorf, anaMorfFiles[i])){
 			anaMorfFolderIndex = i;
@@ -1266,6 +1293,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 		}
 		baseOutputFilepath = File.getParent(outputHDM) + File.separator + TWOMBLI_RESULTS_FILENAME;
 		outputFilepath = baseOutputFilepath + ".csv";
+
 		count = 1;
 		while(File.exists(outputFilepath)){
 			outputFilepath = baseOutputFilepath + "_" + count + ".csv";
@@ -1285,6 +1313,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 			} else {
 				anaMorfLine = split(anaMorfResults[i], ",");
 				hdmIndex =  matchHDMResult(anaMorfLine[0], hdmResults);
+
 				hdmLine = split(hdmResults[hdmIndex], ",");
 				hdm = hdmLine[hdmLine.length - 1];
 				hdm = 1-hdm;
