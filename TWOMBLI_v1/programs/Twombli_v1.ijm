@@ -807,7 +807,7 @@ function searchForFile(input, targetPath, target) {
       for (i = 0; i < list.length; i++) {
             if(File.isDirectory(input + File.separator + list[i]))
                   targetPath = searchForFile(input + File.separator + list[i], targetPath, target);
-            if(matches(list[i], target)){
+            if(startsWith(list[i], target)){
                   return input + File.separator + list[i];
             }
       }
@@ -846,21 +846,21 @@ function loadParameterFile(){
 
 	for (i = 0; i < nLines; i++) {
 		words = split(lines[i], DELIM);
-		if(matches(words[0], CONTRAST_SATURATION)){
+		if(startsWith(words[0], CONTRAST_SATURATION)){
 			contrastSaturation = parseFloat(words[1]);
-		} else if(matches(words[0], MIN_LINE_WIDTH)){
+		} else if(startsWith(words[0], MIN_LINE_WIDTH)){
 			minLineWidth = parseFloat(words[1]);
-		} else if(matches(words[0], MAX_LINE_WIDTH)){
+		} else if(startsWith(words[0], MAX_LINE_WIDTH)){
 			maxLineWidth = parseFloat(words[1]);
-		} else if(matches(words[0], MIN_CURVATURE_WINDOW)){
+		} else if(startsWith(words[0], MIN_CURVATURE_WINDOW)){
 			minCurvatureWindow = parseFloat(words[1]);
-		} else if(matches(words[0], MAX_CURVATURE_WINDOW)){
+		} else if(startsWith(words[0], MAX_CURVATURE_WINDOW)){
 			maxCurvatureWindow = parseFloat(words[1]);
-		} else if(matches(words[0], MINIMUM_BRANCH_LENGTH)){
+		} else if(startsWith(words[0], MINIMUM_BRANCH_LENGTH)){
 			minimumBranchLength = parseFloat(words[1]);
-		} else if(matches(words[0], MAXIMUM_DISPLAY_HDM)){
+		} else if(startsWith(words[0], MAXIMUM_DISPLAY_HDM)){
 			maximumDisplayHDM = parseFloat(words[1]);
-		} else if(matches(words[0], MINIMUM_GAP_DIAMETER)){
+		} else if(startsWith(words[0], MINIMUM_GAP_DIAMETER)){
 			minimumGapDiameter = parseFloat(words[1]);
 		}
 	}
@@ -1171,7 +1171,7 @@ function matchHDMResult(imageName, hdmResults){
 	for(i = 0; i < hdmResults.length; i++){
 		line = hdmResults[i];
 		splitLine = split(line, ",");
-		if(matches(imageName, splitLine[1])){
+		if(startsWith(imageName, splitLine[1])){
 			return i;
 		}
 	}
@@ -1180,7 +1180,7 @@ function matchHDMResult(imageName, hdmResults){
 
 function matchAlignmentResult(imageName){
 	for(i = 0; i < alignmentVecOrder.length; i++){
-		if(matches(imageName, alignmentVecOrder[i])){
+		if(startsWith(imageName, alignmentVecOrder[i])){
 			return i;
 		}
 	}
