@@ -1,5 +1,5 @@
 /*
-	26-11-19
+	29-10-20
 	Written by Esther Wershof and David Barry
 */
 
@@ -79,8 +79,11 @@ var maxCurvatureWindow = 40;
 var curvatureWindowStep = 10;
 var minimumBranchLength = 10;
 var maximumDisplayHDM = 200;
-var gapAnalysis = true;
-var minimumGapDiameter = 30;
+var gapAnalysis = false;
+var minimumGapDiameter = 0;
+
+var minLineWidthTest = 5;
+var maxLineWidthTest = 20;
 
 var contrastHigh = 120.0;
 var contrastLow = 0.0;
@@ -119,10 +122,10 @@ if(getBoolean("Do you have a pre-existing parameter file you wish to load?")){ /
 	darkline = getBoolean("Are the matrix fibres dark on a light background?");
 }
 
-wait(1000);
+wait(11);
 print("\nStep 0"); 
 print("Organise images into Eligible and Ineligible folders. See documentation for guidance");
-	wait(1000);
+	wait(11);
 	
 /*
 	Resolution and removing dodgy samples
@@ -133,29 +136,29 @@ while(happyWithValues==false)
 {
 	print("\nStep 1: Image resolution");
 // all manual instructions for the user
-	wait(1000);
+	wait(11);
 	print("Move any images of resolution lower than 1 pixel = 1 micron from the Eligible folder to the Ineligible folder. Can check this by clicking Image->Show info");
-	wait(1000);
+	wait(11);
 	waitForUser("Once all images in Eligible folder have high enough resolution, click 'OK'");
-	wait(1000);
+	wait(11);
 	
 	print("\nStep 2: Image quality");
-	wait(1000);
+	wait(11);
 	print("Make sure all images in Eligible folder are in focus and contain a significant proportion of matrix fibres. See Documentation Figure 2 for guidance ");
-	wait(1000);
+	wait(11);
 	waitForUser("Once all images in Eligible folder are high enough quality, click 'OK'");
-	wait(1000);
+	wait(11);
 
 
 	print("\nStep 3: File organization");
-	wait(1000);
+	wait(11);
 	print("Have you organized the images correctly with three images from the Eligible folder copied in to the Test Set folder?");
-	wait(1000);
+	wait(11);
 	waitForUser("Once images are correctly organised into Eligible, Ineligible and Test Set folders, click 'OK'");
-	wait(1000);
+	wait(11);
 
 	print("\n Good \n You are now ready to choose analysis parameters ");
-	wait(1000);
+	wait(11);
 
 	ans1 = getBoolean("Are you happy to proceed to the next step?"); // check with the user to next step. If not happy then programme exits.
 	if(ans1==false)
@@ -179,7 +182,7 @@ print("Choosing sensible parameters...");
 	
 	//---------------------------------------------------------------------------------
 	print("\nStep 4: Color balance");
-	wait(1000);
+	wait(11);
 	
 	happyTestFolders=false;
 	while(happyTestFolders==false){
@@ -208,7 +211,7 @@ print("Choosing sensible parameters...");
 	IJ.redirectErrorMessages(); // does not abort if the folder contains an image that imagej can't open
 	
 	// opening as 8-bit images
-	wait(1000);
+	wait(11);
 	print("Converting all test images to 8-bit...");
 	run("Close All");
 	IJ.redirectErrorMessages();
@@ -222,13 +225,13 @@ print("Choosing sensible parameters...");
 	if(nImages==0){
 		print("WARNING, no images in testSetInput");
 	}
-	wait(1000);
+	wait(11);
 	print("All test images now open are 8-bit images");
 
 	//adjust contrast of image
-	wait(1000);
+	wait(11);
 	print("Automatically adjusting color balance, saturating 35% of pixels");
-	wait(1000);
+	wait(11);
 	for (i=0;i<nImages;i++) { 
 	    selectImage(i+1); 
 	    ids[i]=getImageID;
@@ -242,7 +245,7 @@ print("Choosing sensible parameters...");
 	while(happyContrast==false)
 	{
 		testSaturationValue = getNumber("Enter a saturation value between 0 and 1 ", 0.35); 
-		wait(1000);
+		wait(11);
 
 		for (i=0;i<nImages;i++) { 
 			    selectImage(i+1); 
@@ -256,39 +259,51 @@ print("Choosing sensible parameters...");
 	}
 	
 	// get user to choose line width for ridge detection
-	wait(1000);
+	wait(11);
 	print("\n Step 5: Choosing line width(s) for ridge detection. (See Documentation Figure 4)");
-	wait(1000);
+	wait(11);
 	darkline = getBoolean("Are the matrix fibres dark on a light background?"); //thresholding different depending if image is on light or dark background
-	wait(1000);
-	wait(1000);
+	wait(11);
+	wait(11);
 	happyLineWidth=false;
 	while(happyLineWidth==false){
+		wait(11);
+		print("Exploratory line width analysis");
+		minLineWidthTest = getNumber("Enter a proposed min line width", minLineWidthTest); // ask user to input 
+		maxLineWidthTest = getNumber("Enter a proposed max line width ", maxLineWidthTest); // ask user to input 
+		if(minLineWidthTest<=1){
+			getNumber("Proposaed min line width is too small, please choose a larger value", minLineWidthTest); // ask user to input 
+		}
+		runTestRidgeDetection(inputTestSet,outputTestMasks,5);
+
+		waitForUser("\n Take a look at the output masks with different linewidths and the TestingMultipleLineWidths.csv file to choose an appropriate line width(s)"); 
+
 		run("Close All");
 		IJ.redirectErrorMessages();
 		openFolder(inputTestSet);
 
-		// opening and adjusting images
 		for (i=0;i<nImages;i++) { 
 		    selectImage(i+1); 
 		    ids[i]=getImageID;
 		    run("Enhance Contrast", "saturated=" + contrastSaturation);
 		    run("8-bit");
 		}
-//		wait(1000);
+
+		
+//		wait(11);
 //		print("\n If you are happy to use a single line width, set minLineWidth and maxLineWidth to same value");
 //		print("\n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)");
-		wait(1000);
+		wait(11);
 
-		waitForUser("\n If you are happy to use a single line width, set minLineWidth and maxLineWidth to same value. \n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)"); 
-		minLineWidth = getNumber("Enter a proposed min line width ", minLineWidth); // ask user to input 
-		maxLineWidth = getNumber("Enter a proposed max line width ", maxLineWidth); // ask user to input 
+		waitForUser("\n If you are happy to use a single line width (advisable), set minLineWidth and maxLineWidth to same value. \n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)"); 
+		minLineWidth = getNumber("Enter a proposed min line width ", minLineWidthTest); // ask user to input 
+		maxLineWidth = getNumber("Enter a proposed max line width ", minLineWidthTest); // ask user to input 
 		
 		// doing ridge detection
 		titles = getList("image.titles");
 		for(j=0; j<titles.length;j++){
 			selectWindow(titles[j]);
-			runMultiScaleRidgeDetection();
+			runMultiScaleRidgeDetection(5);
 		    run("Out [-]"); 
 		} 
 
@@ -296,40 +311,45 @@ print("Choosing sensible parameters...");
 		waitForUser("Once you have compared the masks with the images, click OK"); 
 		happyLineWidth=getBoolean("Are you happy with the masks produced with this line width(s)? (Click no if you want to repeat this step)");
 	}
-	wait(1000);
+	wait(11);
 
 	run("Close All");
 	print("\n Generating masks for test images...");
-	processFolderRidgeDetection(inputTestSet,outputTestMasks); // generate masks for testSet
-	run("Close All");
-	openFolder(outputTestMasks); // open the testSet masks
-	
-	//Curvature window and minimum branch length for anamorf
-	
-	wait(1000);
+//	processFolderRidgeDetection(inputTestSet,outputTestMasks); // generate masks for testSet
+//	run("Close All");
+	wait(11);
+	openFolderSpecific(outputTestMasks);
+
+
+	wait(11);
 	print("\n Step 6: Choosing curvature window and minimum branch length for Anamorf. (See Documentation Figure 5)");
-	wait(1000);
+	wait(11);
+	
 	happyCurvature=false;
 	while(happyCurvature==false){
 		print("For each open mask, use the 'straight line' tool to choose a reasonable");
 		print("curvature window. Try measuring the length of approximately straight lines ");
 		print("on the mask without sharp turns or branches (see Figure 8 in documentation).");
-		wait(1000);
+		wait(11);
 		 
 		
 print("Once you have decided the curvature window(s) that works for all masks, click OK and enter the value when prompted");
-		wait(1000);
+		wait(11);
 		waitForUser("Decide curvature window(s), then click 'OK'"); 
 		print("Enter curvature window(s) that works for all test images");
 
 		waitForUser("\n If you are happy to use a single curvature window, set minCurvatureWindow and maxCurvatureWindow to same value. \n Setting minCurvatureWindow and maxCurvatureWindow to different values will provide more detailed curvature output (but may take longer)"); 
-		wait(1000);
+		wait(11);
 		minCurvatureWindow = getNumber("Min curvature window", minCurvatureWindow); 
 		maxCurvatureWindow = getNumber("Max curvature window", maxCurvatureWindow); 
-// curvature window was declared globally at start with value of 50.
-		minimumBranchLength = minCurvatureWindow/10; 
-// by default this is set to curvatureWindow/10 but can be altered later by the user
-		wait(1000);
+
+		minimumBranchLength = Math.round(maxCurvatureWindow/10);
+		if(minimumBranchLength<5){
+			minimumBranchLength=5; 
+		}
+
+
+		wait(11);
 		happyCurvature=getBoolean("Are you happy with the curvature window(s)? (Click no if you want to repeat this step)");
 	}
 
@@ -337,18 +357,18 @@ print("Once you have decided the curvature window(s) that works for all masks, c
 	Optional gap analysis
 	*/
 	print("\nStep 7: Optional gap analysis");
-	wait(1000);
+	wait(11);
     gapAnalysis=getBoolean("Do you want to include gap analysis? (See Documentation Figure 8)");
 	if(gapAnalysis==true)
 	{
-		wait(1000);
+		wait(11);
 		print("For each open mask, use the 'straight line' tool to decide the minimum diameter");
 		print("for gaps you want to measure. The smaller the gaps, the longer the analysis ");
 		print("will take.");
-		wait(1000);
+		wait(11);
 
 		print("Once you have decided on the minimum gap diameter, click OK and enter the value when prompted");
-		wait(1000);
+		wait(11);
 		waitForUser("Decide minimum gap diameter, then click 'OK'"); 
 
 		w = getWidth();
@@ -366,7 +386,7 @@ print("Once you have decided the curvature window(s) that works for all masks, c
 	happyWithHDM=false;
 	while(happyWithHDM==false){
 	print("\nStep 8: Choosing threshold value for HDM.  (See Documentation Figure 6)");
-	wait(1000);
+	wait(11);
 	
 	print("Reopening and adjusting contrast of all testSet images...");
 		run("Close All");
@@ -387,14 +407,14 @@ print("Once you have decided the curvature window(s) that works for all masks, c
 	print("\n Adjust maximum value in brightness and contrast window (by sliding second bar) to remove anything that is not matrix");
 	run("Brightness/Contrast...");
 	print("Click 'set' to see maximum display values for each test image");
-	wait(1000);
+	wait(11);
 	print("Once you have decided maximum display values click OK and enter this value when prompted");
-	wait(1000);
+	wait(11);
 	waitForUser("Choose maximum display values (by sliding the second bar in the B&C box) to filter out background, then click 'OK'"); 
-	wait(1000);
+	wait(11);
 	print("Enter maximum display value");
 	maximumDisplayHDM = getNumber("maximum display HDM", 200); 
-	wait(1000);
+	wait(11);
 
 	run("Close All");
 	IJ.redirectErrorMessages();
@@ -413,11 +433,11 @@ print("Once you have decided the curvature window(s) that works for all masks, c
 		Conclusion: recapping chosen parameter values
 	 */
 	print("\n Good \n You have now chosen all necessary parameters to generate matrix information for your data");
-	wait(1000);
+	wait(11);
 	print("\nStep 9: recapping chosen parameters");
-	wait(1000);
+	wait(11);
 	print("\nDo these values seem reasonable? Do these masks and HDM images (in TestMasks and TestHDM folders) look good?");
-	wait(1000);
+	wait(11);
 	
 	Dialog.create("Recap values");
 	// User can override any values here
@@ -448,14 +468,14 @@ print("Once you have decided the curvature window(s) that works for all masks, c
 	if(happyWithValues==false)
 	{
 		print("Exiting macro. Go back to start of prechecks to choose parameter values again");
-		wait(1000);
+		wait(11);
 	}
 else{
 		saveParameterFile(); // write the chosen parameter files to a parameter file, so next time user can skip previous steps
 	}
 }
 print("End of pre-checks");
-wait(1000);
+wait(11);
 
 close("*");
 //close everything.
@@ -471,9 +491,10 @@ close("*");
  ------------------------------------------------------------------------------------------------------------------------------
  -----------------------------------------------------------------------------------------------------------------------------
  */
+ 
 // computes ridge detection (to make masks) on all files in eligible folder
 print("\nStep 10: Choosing directories and files");
-wait(1000);
+wait(11);
 
 happyRealFolders=false;
 while(happyRealFolders==false){
@@ -487,7 +508,7 @@ while(happyRealFolders==false){
 	outputHDM = getDirectory("Choose an output directory for HDM");
 	countFiles(outputHDM);
 	
-	wait(1000);
+	wait(11);
 	print("Finally, choose file anamorfProperties.xml (in the programs folder)");
 	anamorfProperties = File.openDialog("Choose file anamorfProperties.xml (in the programs folder)");
 	
@@ -510,10 +531,10 @@ anamorfProperties = Dialog.getString();
 
 
 print("\nGood, you have chosen all necessary files. Twombli is ready to process all images");
-wait(1000);
+wait(11);
 
 print("\nStep 11: ridge detection");
-wait(1000);
+wait(11);
 
 
 IJ.redirectErrorMessages();
@@ -537,7 +558,7 @@ close("*");
 
 // computes Anamorf (where most of the metrics are derived) on all eligible files
 inputAnamorf = outputMasks;
-wait(1000);
+wait(11);
 print("\nStep 12: extracting parameters with Anamorf");
 
 
@@ -557,17 +578,18 @@ for(c = minCurvatureWindow + curvatureWindowStep; c <= maxCurvatureWindow; c += 
 	Ext.runAnaMorf();	
 }
 
-wait(1000);
+wait(11);
 print("HERE exiting anamorf");
 
-wait(1000);
+wait(11);
 print("Now computing alignment");
 alignmentVec=newArray(0);
 alignmentVec = processFolderAlignment(outputMasks);	
 var dimensionsVec = processFolderDimensions(outputMasks);
 var alignmentVecOrder = getAlignmentVecOrder(outputMasks);
 print("Finished computing alignment");
-close("*"); 
+close("*");
+
 /*
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
@@ -580,7 +602,7 @@ close("*");
  ------------------------------------------------------------------------------------------------------------------------------
 */
 // Computes HDM on all Eligible images
-wait(1000);
+wait(11);
 print("\nStep 13: Computing HDM");
 run("Clear Results");
 inputHDM = inputEligible;
@@ -611,10 +633,11 @@ wait(1000);
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
 */
+
 print("gap analysis = ", gapAnalysis);
 if(gapAnalysis==true)
 {
-	wait(1000);
+	wait(11);
 	print("\nOptional Step 14: Computing Gap analysis");
 	print("minimumGapDiameter = ",minimumGapDiameter);
 
@@ -628,13 +651,14 @@ if(gapAnalysis==true)
 			 run("Close");}
 	
 	print("FINISHED GAP ANALYSIS!");
-	wait(1000);
+	wait(11);
 	print("Gap analysis can be found in output masks folder");
 	print("containing masks with gaps shown, and a summary txt file");
 }
-
+print("Just before tidyResults");
 tidyResults(outputHDM, inputAnamorf, inputEligible, alignmentVec);
 print("FINISHED EVERYTHING!");
+
 /*
  ------------------------------------------------------------------------------------------------------------------------------
  ------------------------------------------------------------------------------------------------------------------------------
@@ -651,8 +675,11 @@ FUNCTION OVERVIEW (indentations mean functions inside other functions)
 
 openFolder(input)
 	openFile (input, file)
+runTestRidgeDetection(inputDir,outputDir)
 processFolderRidgeDetection(input, output)
 	processFileRidgeDetection (input, output, file)
+		runMultiScaleRidgeDetection()
+			printResult(lineWidth)
 		calcSigma()
 		calcLowerThresh(estimatedSigma)
 		calcUpperThresh(estimatedSigma)
@@ -673,23 +700,109 @@ tidyResults()
 */
 
 // function to open all files in a folder
-	function openFolder(input) { 
-		list = getFileList(input);
-		list = Array.sort(list);
-		for (i = 0; i < list.length; i++) {
-			if(File.isDirectory(input + File.separator + list[i]))
-	{
-				openTestSetFolder(input + File.separator + list[i]);
-			} else {
+function openFolder(input) { 
+	list = getFileList(input);
+	list = Array.sort(list);
+	for (i = 0; i < list.length; i++) {
+		if(File.isDirectory(input + File.separator + list[i]))
+{
+			openTestSetFolder(input + File.separator + list[i]);
+		} else {
+			openFile(input, list[i]);
+		}
+	}
+}
+
+function openFolderSpecific(input) { 
+	list = getFileList(input);
+	list = Array.sort(list);
+	suffix1 = "_" + minLineWidth + ".png";
+	suffix2 = "_" + maxLineWidth + ".png";
+	for (i = 0; i < list.length; i++) {
+		if(File.isDirectory(input + File.separator + list[i]))
+		{
+			openTestSetFolder(input + File.separator + list[i]);
+		} else {
+			if(endsWith(list[i], suffix1)){
 				openFile(input, list[i]);
+			}
+			if(minLineWidth!=maxLineWidth){
+				if(endsWith(list[i], suffix2)){
+				openFile(input, list[i]);
+				}
 			}
 		}
 	}
+}
+
+
+
+function openFile(input, file) {
+	print("opening file " + input + File.separator + file);
+	open(input + File.separator + file);
+	run("Out [-]"); // zoom out
+}	
+
+function runTestRidgeDetection(inputDir,outputDir,lineWidthStep){
+
+fileList = getFileList(inputDir);
+
+setBatchMode(true);
+
+run("Clear Results");
+
+for (i = 0; i < fileList.length; i++) {
+
+	open(inputDir + File.separator + fileList[i]);
+    run("Enhance Contrast", "saturated=" + contrastSaturation);
+    run("8-bit");
+
 	
-	function openFile(input, file) {
-		open(input + File.separator + file);
-		run("Out [-]"); // zoom out
-	}	
+	setResult("Image Title", nResults, fileList[i]);
+	input = getTitle();
+	sigma = calcSigma(minLineWidthTest-1);
+	lowerThresh = calcLowerThresh(minLineWidthTest-1, sigma);
+	upperThresh = calcUpperThresh(minLineWidthTest-1, sigma);
+//	print("Running ridge detection for line width " + minLineWidthTest-1 + " on " + fileList[i]);
+	run("Ridge Detection", "line_width=" + minLineWidthTest-1 + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+	rename("lw_" + minLineWidthTest-1);
+	result = getTitle();
+	
+	lw = minLineWidthTest;
+	while(lw<=maxLineWidthTest){
+		sigma = calcSigma(lw);
+		lowerThresh = calcLowerThresh(lw, sigma);
+		upperThresh = calcUpperThresh(lw, sigma);
+		selectWindow(input);
+		print("Running ridge detection for line width " + lw + " on " + fileList[i]);
+		run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		rename("lw_" + lw);
+		this_result = getTitle();
+		printResult(lw);
+		imageCalculator("OR create", result, this_result);
+		rename("Composite_" + lw);
+		temp = result;
+		result = getTitle();
+		close(temp);
+		selectWindow(this_result);
+		saveAs("PNG", outputDir + File.separator + fileList[i] + "_mask_" + lw);
+		close();
+		lw = lw + lineWidthStep;
+	}
+	
+//	saveAs("PNG", outputDir + File.separator + fileList[i] + "_composite_mask");
+	close("*");
+
+}
+
+saveAs("Results", outputDir + File.separator + "TestingMultipleLineWidths.csv");
+close("Results");
+
+setBatchMode(false);
+
+print("Done");
+
+}
 
 	// function to scan folders/subfolders/files to find files with correct suffix
 function processFolderRidgeDetection(input,output) {
@@ -718,7 +831,7 @@ function processFileRidgeDetection(input, output, file) {
 	
 	run("8-bit");
 
-	runMultiScaleRidgeDetection();
+	runMultiScaleRidgeDetection(1);
 
 	// Invert LUT
 	getLut(reds, greens, blues);
@@ -745,6 +858,62 @@ function processFileRidgeDetection(input, output, file) {
 	
 	print("Saving to: " + output);
 	setBatchMode(false);
+}
+
+function runMultiScaleRidgeDetection(lineWidthStep){
+	input = getTitle();
+	sigma = calcSigma(minLineWidth);
+	lowerThresh = calcLowerThresh(minLineWidth, sigma);
+	upperThresh = calcUpperThresh(minLineWidth, sigma);
+	if(darkline){
+			run("Ridge Detection", "line_width=" + minLineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		} else{
+			run("Ridge Detection", "line_width=" + minLineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		}
+	result = getTitle();
+	
+//	for(lw = minLineWidth; lw <= maxLineWidth; lw++){
+//		sigma = calcSigma(lw);
+//		lowerThresh = calcLowerThresh(lw, sigma);
+//		upperThresh = calcUpperThresh(lw, sigma);
+//		selectWindow(input);
+//		if(darkline){
+//			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+//		} else{
+//			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+//		}
+//		this_result = getTitle();
+//		imageCalculator("OR create", result, this_result);
+//		temp = result;
+//		result = getTitle();
+//		close(temp);
+//		close(this_result);
+//	}
+
+	lw = minLineWidth;
+	while(lw<=maxLineWidth){
+		sigma = calcSigma(lw);
+		lowerThresh = calcLowerThresh(lw, sigma);
+		upperThresh = calcUpperThresh(lw, sigma);
+		selectWindow(input);
+		if(darkline){
+			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		} else{
+			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		}
+		this_result = getTitle();
+		imageCalculator("OR create", result, this_result);
+		temp = result;
+		result = getTitle();
+		close(temp);
+		close(this_result);
+		lw = lw + lineWidthStep;
+	}
+}
+
+function printResult(lineWidth){
+	getHistogram(values, counts, 256);
+	setResult("Line Width " + lineWidth, nResults-1, counts[255]);
 }
 
 // called before processFolderHDM - if folder is not empty, macro might not work.
@@ -1099,6 +1268,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 	hdmResults = split(File.openAsString(hdmResultsFile), "\n");
 	anaMorfFiles = getFileList(inputAnamorf);
 	anaMorfFolderIndex = -1;
+	
 	for(i=0; i < anaMorfFiles.length; i++){
 		if(checkIsAnaMorf(inputAnamorf, anaMorfFiles[i])){
 			anaMorfFolderIndex = i;
@@ -1123,6 +1293,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 		}
 		baseOutputFilepath = File.getParent(outputHDM) + File.separator + TWOMBLI_RESULTS_FILENAME;
 		outputFilepath = baseOutputFilepath + ".csv";
+
 		count = 1;
 		while(File.exists(outputFilepath)){
 			outputFilepath = baseOutputFilepath + "_" + count + ".csv";
@@ -1142,6 +1313,7 @@ function tidyResults(outputHDM, inputAnamorf, inputEligible,alignmentVec){
 			} else {
 				anaMorfLine = split(anaMorfResults[i], ",");
 				hdmIndex =  matchHDMResult(anaMorfLine[0], hdmResults);
+
 				hdmLine = split(hdmResults[hdmIndex], ",");
 				hdm = hdmLine[hdmLine.length - 1];
 				hdm = 1-hdm;
@@ -1187,33 +1359,3 @@ function matchAlignmentResult(imageName){
 	return -1;
 }
 
-function runMultiScaleRidgeDetection(){
-	input = getTitle();
-	sigma = calcSigma(minLineWidth);
-	lowerThresh = calcLowerThresh(minLineWidth, sigma);
-	upperThresh = calcUpperThresh(minLineWidth, sigma);
-	if(darkline){
-			run("Ridge Detection", "line_width=" + minLineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
-		} else{
-			run("Ridge Detection", "line_width=" + minLineWidth + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
-		}
-	result = getTitle();
-	
-	for(lw = minLineWidth + 1; lw <= maxLineWidth; lw++){
-		sigma = calcSigma(lw);
-		lowerThresh = calcLowerThresh(lw, sigma);
-		upperThresh = calcUpperThresh(lw, sigma);
-		selectWindow(input);
-		if(darkline){
-			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
-		} else{
-			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
-		}
-		this_result = getTitle();
-		imageCalculator("OR create", result, this_result);
-		temp = result;
-		result = getTitle();
-		close(temp);
-		close(this_result);
-	}
-}
