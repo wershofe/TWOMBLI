@@ -73,7 +73,6 @@ var TWOMBLI_RESULTS_FILENAME = "Twombli_Results";
 var contrastSaturation = 0.35;
 var minLineWidth = 5;
 var maxLineWidth = 5;
-var lineWidthStep = 1;
 var minCurvatureWindow = 40;
 var maxCurvatureWindow = 40;
 var curvatureWindowStep = 10;
@@ -274,7 +273,8 @@ print("Choosing sensible parameters...");
 		if(minLineWidthTest<=1){
 			getNumber("Proposaed min line width is too small, please choose a larger value", minLineWidthTest); // ask user to input 
 		}
-		runTestRidgeDetection(inputTestSet,outputTestMasks,5);
+
+		runTestRidgeDetection(inputTestSet,outputTestMasks,5);
 
 		waitForUser("\n Take a look at the output masks with different linewidths and the TestingMultipleLineWidths.csv file to choose an appropriate line width(s)"); 
 
@@ -292,7 +292,8 @@ print("Choosing sensible parameters...");
 		
 //		wait(11);
 //		print("\n If you are happy to use a single line width, set minLineWidth and maxLineWidth to same value");
-//		print("\n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)");
+//
+		print("\n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)");
 		wait(11);
 
 		waitForUser("\n If you are happy to use a single line width (advisable), set minLineWidth and maxLineWidth to same value. \n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)"); 
@@ -303,7 +304,7 @@ print("Choosing sensible parameters...");
 		titles = getList("image.titles");
 		for(j=0; j<titles.length;j++){
 			selectWindow(titles[j]);
-			runMultiScaleRidgeDetection(5);
+			runMultiScaleRidgeDetection();
 		    run("Out [-]"); 
 		} 
 
@@ -763,8 +764,11 @@ for (i = 0; i < fileList.length; i++) {
 	sigma = calcSigma(minLineWidthTest-1);
 	lowerThresh = calcLowerThresh(minLineWidthTest-1, sigma);
 	upperThresh = calcUpperThresh(minLineWidthTest-1, sigma);
-//	print("Running ridge detection for line width " + minLineWidthTest-1 + " on " + fileList[i]);
-	run("Ridge Detection", "line_width=" + minLineWidthTest-1 + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+	if(darkline){
+			run("Ridge Detection", "line_width=" + minLineWidthTest-1 + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		} else{
+			run("Ridge Detection", "line_width=" + minLineWidthTest-1 + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		}
 	rename("lw_" + minLineWidthTest-1);
 	result = getTitle();
 	
@@ -775,7 +779,11 @@ for (i = 0; i < fileList.length; i++) {
 		upperThresh = calcUpperThresh(lw, sigma);
 		selectWindow(input);
 		print("Running ridge detection for line width " + lw + " on " + fileList[i]);
-		run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		if(darkline){
+			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		} else{
+			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
+		}
 		rename("lw_" + lw);
 		this_result = getTitle();
 		printResult(lw);
@@ -831,7 +839,7 @@ function processFileRidgeDetection(input, output, file) {
 	
 	run("8-bit");
 
-	runMultiScaleRidgeDetection(1);
+	runMultiScaleRidgeDetection();
 
 	// Invert LUT
 	getLut(reds, greens, blues);
@@ -860,7 +868,8 @@ function processFileRidgeDetection(input, output, file) {
 	setBatchMode(false);
 }
 
-function runMultiScaleRidgeDetection(lineWidthStep){
+function runMultiScaleRidgeDetection(){
+	print("Running Ridge detection");
 	input = getTitle();
 	sigma = calcSigma(minLineWidth);
 	lowerThresh = calcLowerThresh(minLineWidth, sigma);
@@ -872,24 +881,6 @@ function runMultiScaleRidgeDetection(lineWidthStep){
 		}
 	result = getTitle();
 	
-//	for(lw = minLineWidth; lw <= maxLineWidth; lw++){
-//		sigma = calcSigma(lw);
-//		lowerThresh = calcLowerThresh(lw, sigma);
-//		upperThresh = calcUpperThresh(lw, sigma);
-//		selectWindow(input);
-//		if(darkline){
-//			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
-//		} else{
-//			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + minimumBranchLength + " maximum=0");
-//		}
-//		this_result = getTitle();
-//		imageCalculator("OR create", result, this_result);
-//		temp = result;
-//		result = getTitle();
-//		close(temp);
-//		close(this_result);
-//	}
-
 	lw = minLineWidth;
 	while(lw<=maxLineWidth){
 		sigma = calcSigma(lw);
@@ -907,7 +898,7 @@ function runMultiScaleRidgeDetection(lineWidthStep){
 		result = getTitle();
 		close(temp);
 		close(this_result);
-		lw = lw + lineWidthStep;
+		lw = lw + 1;
 	}
 }
 
@@ -1092,7 +1083,8 @@ function processFileGap(input,  file,gapAnalysisFile) {
 	makeRectangle(1, 1, w-2, h-2);
 	run("Crop");
 	run("Canvas Size...", "width="+w+" height="+h+" position=Center zero");
-	run("Max Inscribed Circles", "minimum=30 use minimum_0=0.50 closeness=5");
+
+	run("Max Inscribed Circles", "minimum=30 use minimum_0=0.50 closeness=5");
 	roiManager("Show All");
 	roiManager("Set Color", "red");
 	roiManager("Set Line Width", 3);
