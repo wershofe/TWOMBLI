@@ -259,7 +259,7 @@ print("Choosing sensible parameters...");
 	
 	// get user to choose line width for ridge detection
 	wait(11);
-	print("\n Step 5: Choosing line width(s) for ridge detection. (See Documentation Figure 4)");
+	print("\n Step 5: Choosing line width(s) for ridge detection and minimum branch length. See documentation page 9");
 	wait(11);
 	darkline = getBoolean("Are the matrix fibres dark on a light background?"); //thresholding different depending if image is on light or dark background
 	wait(11);
@@ -299,6 +299,11 @@ print("Choosing sensible parameters...");
 		waitForUser("\n If you are happy to use a single line width (advisable), set minLineWidth and maxLineWidth to same value. \n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)"); 
 		minLineWidth = getNumber("Enter a proposed min line width ", minLineWidthTest); // ask user to input 
 		maxLineWidth = getNumber("Enter a proposed max line width ", minLineWidthTest); // ask user to input 
+		'
+		tryMinimumBranchLength(inputTestSet,outputTestMasks);
+
+		waitForUser("\n Take a look at the output masks with different minimum branch lengths (Documentation Fig 4)"); 
+		minimumBranchLength = getNumber("Enter a proposed min line width ", minimumBranchLength); // ask user to input 
 		
 		// doing ridge detection
 		titles = getList("image.titles");
@@ -323,14 +328,14 @@ print("Choosing sensible parameters...");
 
 
 	wait(11);
-	print("\n Step 6: Choosing curvature window and minimum branch length for Anamorf. (See Documentation Figure 5)");
+	print("\n Step 6: Choosing curvature window(s). (See Documentation Figures 5 & 6)");
 	wait(11);
 	
 	happyCurvature=false;
 	while(happyCurvature==false){
 		print("For each open mask, use the 'straight line' tool to choose a reasonable");
 		print("curvature window. Try measuring the length of approximately straight lines ");
-		print("on the mask without sharp turns or branches (see Figure 8 in documentation).");
+		print("on the mask without sharp turns or branches (see Figure 5 in documentation).");
 		wait(11);
 		 
 		
@@ -343,12 +348,6 @@ print("Once you have decided the curvature window(s) that works for all masks, c
 		wait(11);
 		minCurvatureWindow = getNumber("Min curvature window", minCurvatureWindow); 
 		maxCurvatureWindow = getNumber("Max curvature window", maxCurvatureWindow); 
-
-		minimumBranchLength = Math.round(maxCurvatureWindow/10);
-		if(minimumBranchLength<5){
-			minimumBranchLength=5; 
-		}
-
 
 		wait(11);
 		happyCurvature=getBoolean("Are you happy with the curvature window(s)? (Click no if you want to repeat this step)");
@@ -386,7 +385,7 @@ print("Once you have decided the curvature window(s) that works for all masks, c
 	*/
 	happyWithHDM=false;
 	while(happyWithHDM==false){
-	print("\nStep 8: Choosing threshold value for HDM.  (See Documentation Figure 6)");
+	print("\nStep 8: Choosing threshold value for HDM.  (See Documentation Figure 7)");
 	wait(11);
 	
 	print("Reopening and adjusting contrast of all testSet images...");
@@ -677,6 +676,7 @@ FUNCTION OVERVIEW (indentations mean functions inside other functions)
 openFolder(input)
 	openFile (input, file)
 runTestRidgeDetection(inputDir,outputDir)
+tryMinimumBranchLength(inputDir,outputDir)
 processFolderRidgeDetection(input, output)
 	processFileRidgeDetection (input, output, file)
 		runMultiScaleRidgeDetection()
@@ -809,6 +809,47 @@ close("Results");
 setBatchMode(false);
 
 print("Done");
+
+}
+
+function tryMinimumBranchLength(inputDir,outputDir){
+
+fileList = getFileList(inputDir);
+
+setBatchMode(true);
+
+//run("Clear Results");
+mbl = 5;
+while(mbl<=15){
+	for (i = 0; i < fileList.length; i++) {
+	
+		open(inputDir + File.separator + fileList[i]);
+	    run("Enhance Contrast", "saturated=" + contrastSaturation);
+	    run("8-bit");
+		
+		input = getTitle();
+		lw = minLineWidth;
+		sigma = calcSigma(lw);
+		lowerThresh = calcLowerThresh(lw, sigma);
+		upperThresh = calcUpperThresh(lw, sigma);
+		selectWindow(input);
+		print("Running ridge detection for minimum branch length " + mbl + " on " + fileList[i]);
+		if(darkline){
+			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + mbl + " maximum=0");
+		} else{
+			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + mbl + " maximum=0");
+		}
+
+		saveAs("PNG", outputDir + File.separator + fileList[i] + "_MIN_BRANCH_LENGTH_" + mbl);
+		close("*");
+	}
+	mbl = mbl + 5;
+}	
+	close("*");
+
+}
+
+setBatchMode(false);
 
 }
 
