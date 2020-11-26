@@ -268,18 +268,46 @@ print("Choosing sensible parameters...");
 	while(happyLineWidth==false){
 		wait(11);
 		print("Exploratory line width analysis");
-		minLineWidthTest = getNumber("Enter a proposed min line width", minLineWidthTest); // ask user to input 
-		maxLineWidthTest = getNumber("Enter a proposed max line width ", maxLineWidthTest); // ask user to input 
+		minLineWidthTest = getNumber("Enter a proposed min line width (try a multiple of 5)", minLineWidthTest); // ask user to input 
+		maxLineWidthTest = getNumber("Enter a proposed max line width (try a multiple of 5)", maxLineWidthTest); // ask user to input 
 		if(minLineWidthTest<=1){
-			getNumber("Proposaed min line width is too small, please choose a larger value", minLineWidthTest); // ask user to input 
+			getNumber("Proposed min line width is too small, please choose a larger value", minLineWidthTest); // ask user to input 
 		}
 
 		runTestRidgeDetection(inputTestSet,outputTestMasks,5);
-
+		print("\n Take a look at the output masks with different linewidths and the TestingMultipleLineWidths.csv file to choose an appropriate line width(s)");
 		waitForUser("\n Take a look at the output masks with different linewidths and the TestingMultipleLineWidths.csv file to choose an appropriate line width(s)"); 
+//
+//		run("Close All");
+//		IJ.redirectErrorMessages();
+//		openFolder(inputTestSet);
+//
+//		for (i=0;i<nImages;i++) { 
+//		    selectImage(i+1); 
+//		    ids[i]=getImageID;
+//		    run("Enhance Contrast", "saturated=" + contrastSaturation);
+//		    run("8-bit");
+//		}
 
-		run("Close All");
-		IJ.redirectErrorMessages();
+		
+//		wait(11);
+//		print("\n If you are happy to use a single line width, set minLineWidth and maxLineWidth to same value");
+//
+		print("\n If you are happy to use a single line width (advisable), set minLineWidth and maxLineWidth to same value. \n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)");
+		wait(11);
+
+		waitForUser("\n If you are happy to use a single line width (advisable), set minLineWidth and maxLineWidth to same value. \n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)"); 
+		minLineWidth = getNumber("Enter a proposed min line width ", minLineWidthTest); // ask user to input 
+		maxLineWidth = getNumber("Enter a proposed max line width ", minLineWidthTest); // ask user to input 
+		print("Choosing minimum branch length");
+		print("Now computing masks for several different minimum branch lengths...");
+		tryMinimumBranchLength(inputTestSet,outputTestMasks);
+		print("Done. Take a look at the output masks with different MIN_BRANCH_LENGTH (Documentation Fig 4)");
+		waitForUser("\n Take a look at the output masks with different MIN_BRANCH_LENGTH (Documentation Fig 4)"); 
+		minimumBranchLength = getNumber("Enter a proposed min branch length ", minimumBranchLength); // ask user to input 
+		
+		wait(11);
+		print("Computing masks for the specified values of min/max line width and min branch length...");
 		openFolder(inputTestSet);
 
 		for (i=0;i<nImages;i++) { 
@@ -288,22 +316,6 @@ print("Choosing sensible parameters...");
 		    run("Enhance Contrast", "saturated=" + contrastSaturation);
 		    run("8-bit");
 		}
-
-		
-//		wait(11);
-//		print("\n If you are happy to use a single line width, set minLineWidth and maxLineWidth to same value");
-//
-		print("\n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)");
-		wait(11);
-
-		waitForUser("\n If you are happy to use a single line width (advisable), set minLineWidth and maxLineWidth to same value. \n Setting minLineWidth and maxLineWidth to different values will identify fibres of different thicknesses (but may take longer)"); 
-		minLineWidth = getNumber("Enter a proposed min line width ", minLineWidthTest); // ask user to input 
-		maxLineWidth = getNumber("Enter a proposed max line width ", minLineWidthTest); // ask user to input 
-		'
-		tryMinimumBranchLength(inputTestSet,outputTestMasks);
-
-		waitForUser("\n Take a look at the output masks with different minimum branch lengths (Documentation Fig 4)"); 
-		minimumBranchLength = getNumber("Enter a proposed min line width ", minimumBranchLength); // ask user to input 
 		
 		// doing ridge detection
 		titles = getList("image.titles");
@@ -313,9 +325,12 @@ print("Choosing sensible parameters...");
 		    run("Out [-]"); 
 		} 
 
+		openFolder(inputTestSet);
+		
 		// gives user chance to run ridge detection again with different line width
+		print("Once you have compared the masks with the images, click OK"); 
 		waitForUser("Once you have compared the masks with the images, click OK"); 
-		happyLineWidth=getBoolean("Are you happy with the masks produced with this line width(s)? (Click no if you want to repeat this step)");
+		happyLineWidth=getBoolean("Are you happy with the masks produced with this line width(s) and minimum branch length? (Click no if you want to repeat this step)");
 	}
 	wait(11);
 
@@ -338,19 +353,17 @@ print("Choosing sensible parameters...");
 		print("on the mask without sharp turns or branches (see Figure 5 in documentation).");
 		wait(11);
 		 
-		
-print("Once you have decided the curvature window(s) that works for all masks, click OK and enter the value when prompted");
 		wait(11);
 		waitForUser("Decide curvature window(s), then click 'OK'"); 
-		print("Enter curvature window(s) that works for all test images");
+		print("Decide curvature window(s), then click 'OK'");
 
 		waitForUser("\n If you are happy to use a single curvature window, set minCurvatureWindow and maxCurvatureWindow to same value. \n Setting minCurvatureWindow and maxCurvatureWindow to different values will provide more detailed curvature output (but may take longer)"); 
+		print("\n If you are happy to use a single curvature window, set minCurvatureWindow and maxCurvatureWindow to same value. \n Setting minCurvatureWindow and maxCurvatureWindow to different values will provide more detailed curvature output (but may take longer)"); 
 		wait(11);
 		minCurvatureWindow = getNumber("Min curvature window", minCurvatureWindow); 
 		maxCurvatureWindow = getNumber("Max curvature window", maxCurvatureWindow); 
 
-		wait(11);
-		happyCurvature=getBoolean("Are you happy with the curvature window(s)? (Click no if you want to repeat this step)");
+		happyCurvature = getBoolean("Are you happy to move on? Click no if you want to choose different curvature windows)");
 	}
 
 	/*
@@ -833,7 +846,7 @@ while(mbl<=15){
 		lowerThresh = calcLowerThresh(lw, sigma);
 		upperThresh = calcUpperThresh(lw, sigma);
 		selectWindow(input);
-		print("Running ridge detection for minimum branch length " + mbl + " on " + fileList[i]);
+		//print("Running ridge detection for minimum branch length " + mbl + " on " + fileList[i]);
 		if(darkline){
 			run("Ridge Detection", "line_width=" + lw + " high_contrast=" + contrastHigh + " low_contrast=" + contrastLow + " darkline extend_line make_binary method_for_overlap_resolution=NONE sigma=" + sigma + " lower_threshold=" + lowerThresh + " upper_threshold=" + upperThresh + " minimum_line_length=" + mbl + " maximum=0");
 		} else{
@@ -842,17 +855,13 @@ while(mbl<=15){
 
 		saveAs("PNG", outputDir + File.separator + fileList[i] + "_MIN_BRANCH_LENGTH_" + mbl);
 		close("*");
-	}
+		}
 	mbl = mbl + 5;
-}	
+	}	
 	close("*");
 
+	setBatchMode(false);	
 }
-
-setBatchMode(false);
-
-}
-
 	// function to scan folders/subfolders/files to find files with correct suffix
 function processFolderRidgeDetection(input,output) {
 	list = getFileList(input);
