@@ -261,7 +261,7 @@ print("Choosing sensible parameters...");
 	wait(11);
 	print("\n Step 5: Choosing line width(s) for ridge detection and minimum branch length. See documentation page 9");
 	wait(11);
-	darkline = getBoolean("Are the matrix fibres dark on a light background?"); //thresholding different depending if image is on light or dark background
+	darkline = getBoolean("Are the matrix fibres dark on a light background? (Select 'No' if they are light fibres on a dark bacground)"); //thresholding different depending if image is on light or dark background
 	wait(11);
 	wait(11);
 	happyLineWidth=false;
@@ -727,12 +727,33 @@ function openFolder(input) {
 	}
 }
 
+//function openFolderSpecific(input) { 
+//	list = getFileList(input);
+//	list = Array.sort(list);
+//	suffix1 = "_" + minLineWidth + ".png";
+//	suffix2 = "_" + maxLineWidth + ".png";
+//	for (i = 0; i < list.length; i++) {
+//		if(File.isDirectory(input + File.separator + list[i]))
+//		{
+//			openTestSetFolder(input + File.separator + list[i]);
+//		} else {
+//			if(endsWith(list[i], suffix1)){
+//				openFile(input, list[i]);
+//			}
+//			if(minLineWidth!=maxLineWidth){
+//				if(endsWith(list[i], suffix2)){
+//				openFile(input, list[i]);
+//				}
+//			}
+//		}
+//	}
+//}
+
 function openFolderSpecific(input) { 
 	list = getFileList(input);
 	list = Array.sort(list);
-	suffix1 = "_" + minLineWidth + ".png";
-	suffix2 = "_" + maxLineWidth + ".png";
-	for (i = 0; i < list.length; i++) {
+	suffix1 = "LENGTH_" + minimumBranchLength + ".png";
+		for (i = 0; i < list.length; i++) {
 		if(File.isDirectory(input + File.separator + list[i]))
 		{
 			openTestSetFolder(input + File.separator + list[i]);
@@ -740,14 +761,10 @@ function openFolderSpecific(input) {
 			if(endsWith(list[i], suffix1)){
 				openFile(input, list[i]);
 			}
-			if(minLineWidth!=maxLineWidth){
-				if(endsWith(list[i], suffix2)){
-				openFile(input, list[i]);
-				}
 			}
 		}
 	}
-}
+
 
 
 
