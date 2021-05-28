@@ -7,5 +7,6 @@ Documentation can be found inside the TWOMBLI folder
 
 A video tutorial can be found here: https://bmm.crick.ac.uk/TWOMBLI/
 
-The corresponding manuscript for TWOMBLI can be found here: https://www.life-science-alliance.org/content/4/3/e202000880 
+The corresponding manuscript for TWOMBLI can be found here: https://www.life-science-alliance.org/content/4/3/e202000880. 
+ 
 If TWOMBLI is useful in your work, please cite the manuscript.
