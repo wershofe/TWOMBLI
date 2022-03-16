@@ -5,7 +5,7 @@ to your computer.
 
 Documentation can be found inside the TWOMBLI folder
 
-A video tutorial can be found here: https://bmm.crick.ac.uk/TWOMBLI/
+A video tutorial can be found here: https://www.youtube.com/channel/UCftZ5Ksy9vNcK8PiPq9XdnQ
 
 The corresponding manuscript for TWOMBLI can be found here: https://www.life-science-alliance.org/content/4/3/e202000880. 
  
