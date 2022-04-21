@@ -886,7 +886,7 @@ function processFolderRidgeDetection(input,output) {
 	for (i = 0; i < list.length; i++) {
 		if(File.isDirectory(input + File.separator + list[i]))
 {
-			processFolderRidgeDetection(input + File.separator + list[i]);
+			processFolderRidgeDetection(input + File.separator + list[i], output);
 		//if(endsWith(list[i], suffix))
 		} else {
 			processFileRidgeDetection(input, output, list[i]);
