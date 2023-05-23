@@ -1152,7 +1152,6 @@ function processFileGap(input,  file,gapAnalysisFile) {
 	run("Canvas Size...", "width="+w+" height="+h+" position=Center zero");
 
 	run("Max Inscribed Circles", "minimum=" + minimumGapDiameter + " use minimum_0=0.50 closeness=5");
-	run("Max Inscribed Circles", "minimum=1 use minimum_0=0.50 closeness=5");
 
 	roiManager("Show All");
 	roiManager("Set Color", "red");
