@@ -1135,84 +1135,58 @@ function processFolderGap(input) {
 	File.close(gapAnalysisFile);
 }
 
-function processFileGap(input,  file,gapAnalysisFile) {
+function processFileGap(input, file, gapAnalysisFile) {
 	setBatchMode(true);
 	
 	print("Performing gap analysis on ", file);
-	closeROI();
-	run("ROI Manager...");
 	run("Clear Results");
 	
 	open(input + File.separator + file);
-
+	
 	w = getWidth();
 	h = getHeight();
 	makeRectangle(1, 1, w-2, h-2);
 	run("Crop");
 	run("Canvas Size...", "width="+w+" height="+h+" position=Center zero");
-
-	run("Max Inscribed Circles", "minimum=" + minimumGapDiameter + " use minimum_0=0.50 closeness=5");
-
-	roiManager("Show All");
-	roiManager("Set Color", "red");
-	roiManager("Set Line Width", 3);
-	run("Flatten");
-	saveAs("png", input + "/GapAnalysis/"+file +"_GapImage.png");
 	
-	roiManager("Measure");
-
+	run("Max Inscribed Circles", "minimum_disk=" + minimumGapDiameter + " minimum_similarity=0.50 closeness=5");
+	
 	nROIs = roiManager("count");
-
-//-----------------------------------------------------------------------
-	// Computing average statistics
-	if(nROIs>0)
-	{
-		totalArea = 0;
-		varianceNumerator = 0;
+	
+	run("Duplicate...", " ");
+	run("RGB Color");
+	setForegroundColor(255, 0, 0);
+	
+	for (i = 0; i < nROIs; i++) {
+		roiManager("select", i);
+		Roi.setStrokeWidth(3);
+		roiManager("draw");
+	}
+	
+	saveAs("png", input + "/GapAnalysis/"+file +"_GapImage.png");
+	close();
+	roiManager("Measure");
+	
+	if(nROIs>0)	{
 		areaCol = newArray(0);
-	  	for (a=0; a<nResults(); a++) {
-		    areaCol=append(areaCol,getResult("Area",a));
-		    totalArea += getResult("Area",a);
-		}
-		mean = totalArea/nResults();
-	
 		for (a=0; a<nResults(); a++) {
-			    residual = (mean - getResult("Area",a)) * (mean - getResult("Area",a));
-			    varianceNumerator += residual;
-			}
-		variance = varianceNumerator/(nResults()-1);
-		sd = sqrt(variance);
-		arr2 = Array.sort(areaCol);
-		median = percentile(arr2,0.5);
-		percentile5 = percentile(arr2,0.05);
-		percentile95 = percentile(arr2,0.95);
-
-		print(gapAnalysisFile,  file + " " + mean + " " + sd + " " + percentile5 + " " + median + " " + percentile95);
-	
-	//-----------------------------------------------------------------------
-		
-		for(j=0; j<nROIs;j++){
-		roiManager("Select", 0);
-		roiManager("Delete");
+			areaCol = Array.concat(areaCol,getResult("Area",a));
 		}
-			
+		Array.getStatistics(areaCol, min, max, mean, sd);
+		
+		arr2 = Array.sort(areaCol);
+		
+		print(gapAnalysisFile,  file + " " + mean + " " + sd + " " + percentile(arr2,0.05) + " " + percentile(arr2,0.5) + " " + percentile(arr2,0.95));
+		
 		selectWindow("Results");
 		saveAs("Results", input + "/GapAnalysis/IndividualGaps_"+file +".csv");
 		
 		run("Clear Results");
 	}
+	close("ROI Manager");
 	close("*");
 	setBatchMode(false);
-	
 }
-
-function append(arr, value) {
-     arr2 = newArray(arr.length+1);
-     for (i=0; i<arr.length; i++)
-        arr2[i] = arr[i];
-     arr2[arr.length] = value;
-     return arr2;
-  }
 
 function percentile(arr,p) { 
 	// comes from https://stackoverflow.com/questions/2374640/how-do-i-calculate-percentiles-with-python-numpy
@@ -1233,13 +1207,6 @@ function percentile(arr,p) {
 		q = d0+d1;
 	}
 	return q;
-}
-
-function closeROI() {
-
-	if (isOpen("ROI Manager")) {
-		 selectWindow("ROI Manager");
-		 run("Close");}
 }
 
 function processFolderAlignment(input) { // this should be outputMasks folder
