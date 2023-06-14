@@ -78,7 +78,7 @@ var maxCurvatureWindow = 40;
 var curvatureWindowStep = 10;
 var minimumBranchLength = 10;
 var maximumDisplayHDM = 200;
-var gapAnalysis = false;
+var gapAnalysis = true;
 var minimumGapDiameter = 0;
 
 var minLineWidthTest = 5;
@@ -657,7 +657,6 @@ if(gapAnalysis==true)
 	File.makeDirectory(outputMasks+"/GapAnalysis");
 	
 	processFolderGap(outputMasks);
-	closeROI();
 	
 	if (isOpen("Results")) {
 			 selectWindow("Results");
@@ -996,9 +995,10 @@ function processFolderHDM(inputHDM,outputHDM) {
 	list = getFileList(inputHDM);
 	list = Array.sort(list);
 	for (i = 0; i < list.length; i++) {
-		if(File.isDirectory(inputHDM + File.separator + list[i]))
-			processFolderHDM(inputHDM + File.separator + list[i]);
-			processFileHDM(inputHDM, outputHDM, list[i]);
+		if(File.isDirectory(inputHDM + File.separator + list[i])){
+			processFolderHDM(inputHDM + File.separator + list[i], outputHDM);
+		}
+		processFileHDM(inputHDM, outputHDM, list[i]);
 	}
 }
 
@@ -1215,10 +1215,10 @@ function processFolderAlignment(input) { // this should be outputMasks folder
 	list2 = newArray(0);
 	anamorfIndex = 0;
 	for (j = 0; j < list.length; j++) {
-		if(startsWith(list[j], 'AnaMorf')){
+		if(startsWith(list[j], "AnaMorf")){
 			anamorfIndex = j;
 		} else {
-			list2=append(list2,list[j]);
+			list2=Array.concat(list2,list[j]);
 		}
 	}
 
@@ -1236,10 +1236,10 @@ function getAlignmentVecOrder(input) { // this should be outputMasks folder
 	list2 = newArray(0);
 	anamorfIndex = 0;
 	for (j = 0; j < list.length; j++) {
-		if(startsWith(list[j], 'AnaMorf')){
+		if(startsWith(list[j], "AnaMorf")){
 			anamorfIndex = j;
 		} else {
-			list2=append(list2,list[j]);
+			list2=Array.concat(list2,list[j]);
 		}
 	}
 	return list2;
@@ -1268,10 +1268,10 @@ function processFolderDimensions(input){
 	list2 = newArray(0);
 	anamorfIndex = 0;
 	for (j = 0; j < list.length; j++) {
-		if(startsWith(list[j], 'AnaMorf')){
+		if(startsWith(list[j], "AnaMorf")){
 			anamorfIndex = j;
 		} else {
-			list2=append(list2,list[j]);
+			list2=Array.concat(list2,list[j]);
 		}
 	}
 
