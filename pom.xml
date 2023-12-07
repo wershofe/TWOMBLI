@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+		http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.scijava</groupId>
+        <artifactId>pom-scijava</artifactId>
+        <version>34.1.0</version>
+        <relativePath />
+    </parent>
+
+    <groupId>uk.ac.franciscrickinstitute</groupId>
+    <artifactId>TWOMBLI</artifactId>
+    <version>0.0.0</version>
+
+    <name>TWOMBLI</name>
+    <description>The Workflow Of Matrix BioLogy Informatics (TWOMBLI).</description>
+    <url>https://github.com/FrancisCrickInstitute/TWOMBLI</url>
+    <inceptionYear>2023</inceptionYear>
+    <organization>
+        <name>FrancisCrickInstitute</name>
+        <url>https://www.crick.ac.uk/</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>GPL3</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>JonathanCSmith</id>
+            <name>Jonathan C Smith</name>
+            <url>https://imagej.net/User:[MY-IMAGEJ-WIKI-ACCOUNT]</url>
+        </developer>
+    </developers>
+    <contributors>
+        <contributor>
+            <name>None</name>
+        </contributor>
+    </contributors>
+
+    <mailingLists>
+        <mailingList>
+            <name>Image.sc Forum</name>
+            <archive>https://forum.image.sc/tags/imagej</archive>
+        </mailingList>
+    </mailingLists>
+
+    <scm>
+        <connection>scm:git:git://github.com/FrancisCrickInstitute/TWOMBLI</connection>
+        <developerConnection>scm:git:git@github.com:FrancisCrickInstitute/TWOMBLI</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/FrancisCrickInstitute/TWOMBLI</url>
+    </scm>
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>http://github.com/FrancisCrickInstitute/TWOMBLI/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>None</system>
+    </ciManagement>
+
+    <properties>
+        <main-class>TWOMBLI</main-class>
+        <license.licenseName>GPL3</license.licenseName>
+        <license.copyrightOwners>N/A</license.copyrightOwners>
+        <license.projectName>The Workflow Of Matrix BioLogy Informatics (TWOMBLI).</license.projectName>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>imagej</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scijava</groupId>
+            <artifactId>scijava-plugins-commands</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.Biomedical-Imaging-Group</groupId>
+            <artifactId>OrientationJ</artifactId>
+            <version>ce968334bc</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.djpbarry</groupId>
+            <artifactId>AnaMorf</artifactId>
+            <version>master-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.thorstenwagner</groupId>
+            <artifactId>ij-ridgedetection</artifactId>
+            <version>v1.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.BIOP</groupId>
+            <artifactId>ijp-max-inscribed-circles</artifactId>
+            <version>MaxInscribedCircles-2.0.2</version>
+        </dependency>
+    </dependencies>
+</project>
