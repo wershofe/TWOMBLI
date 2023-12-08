@@ -37,11 +37,55 @@
             <id>JonathanCSmith</id>
             <name>Jonathan C Smith</name>
             <url>https://imagej.net/User:[MY-IMAGEJ-WIKI-ACCOUNT]</url>
+            <roles>
+                <role>lead</role>
+                <role>developer</role>
+                <role>debugger</role>
+                <role>reviewer</role>
+                <role>support</role>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>djpbarry</id>
+            <name>David Barry</name>
+            <url>https://forum.image.sc/u/djpbarry</url>
+            <roles>
+                <role>developer</role>
+                <role>debugger</role>
+                <role>reviewer</role>
+                <role>support</role>
+                <role>maintainer</role>
+            </roles>
         </developer>
     </developers>
     <contributors>
         <contributor>
-            <name>None</name>
+            <name>Esther Wershof</name>
+            <roles>
+                <role>founder</role>
+            </roles>
+            <properties>
+                <id>wershofe</id>
+            </properties>
+        </contributor>
+        <contributor>
+            <name>Jonathan Smith</name>
+            <roles>
+                <role>lead</role>
+            </roles>
+            <properties>
+                <id>JonathanCSmith</id>
+            </properties>
+        </contributor>
+        <contributor>
+            <name>David Barry</name>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <properties>
+                <id>djpbarry</id>
+            </properties>
         </contributor>
     </contributors>
 
@@ -78,6 +122,14 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>scijava.hosted</id>
+            <url>https://maven.scijava.org/content/groups/hosted</url>
+        </repository>
+        <repository>
+            <id>scijava.public</id>
+            <url>https://maven.scijava.org/content/groups/public</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -92,7 +144,7 @@
         <dependency>
             <groupId>com.github.Biomedical-Imaging-Group</groupId>
             <artifactId>OrientationJ</artifactId>
-            <version>ce968334bc</version>
+            <version>ce968334bc</version> <!-- corresponds to 2.0.5 -->
         </dependency>
         <dependency>
             <groupId>com.github.djpbarry</groupId>
