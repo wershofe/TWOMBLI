@@ -138,6 +138,18 @@
             <artifactId>scijava-plugins-commands</artifactId>
         </dependency>
         <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>imagej</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>imagej-legacy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ome</groupId>
+            <artifactId>bio-formats_plugins</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.Biomedical-Imaging-Group</groupId>
             <artifactId>OrientationJ</artifactId>
             <version>ce968334bc</version> <!-- corresponds to 2.0.5 -->
@@ -146,6 +158,48 @@
             <groupId>com.github.djpbarry</groupId>
             <artifactId>Anamorf</artifactId>
             <version>4f6cb16cd8</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>sc.fiji</groupId>
+                    <artifactId>fiji-lib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>sc.fiji</groupId>
+                    <artifactId>3D_Viewer</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>sc.fiji</groupId>
+                    <artifactId>Image_5D</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>sc.fiji</groupId>
+                    <artifactId>imagescience</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>sc.fiji</groupId>
+                    <artifactId>pal-optimization</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>sc.fiji</groupId>
+                    <artifactId>TrackMate</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>sc.fiji</groupId>
+                    <artifactId>VIB-lib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ome</groupId>
+                    <artifactId>bio-formats_plugins</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.framagit.mcib3d</groupId>
+                    <artifactId>mcib3d-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>fr.inra.ijpb</groupId>
+                    <artifactId>MorphoLibJ_</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.thorstenwagner</groupId>
@@ -156,15 +210,16 @@
             <groupId>com.github.BIOP</groupId>
             <artifactId>ijp-max-inscribed-circles</artifactId>
             <version>MaxInscribedCircles-2.0.2</version>
-        </dependency>
-        <dependency>
-            <groupId>net.imagej</groupId>
-            <artifactId>imagej</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>fiji</groupId>
+                    <artifactId>fiji-plugins</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <build>
+        <finalName>TWOMBLI</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

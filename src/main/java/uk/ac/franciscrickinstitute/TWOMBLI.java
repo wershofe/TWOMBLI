@@ -1,22 +1,13 @@
 package uk.ac.franciscrickinstitute;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.WindowManager;
-import ij.plugin.PlugIn;
-import net.imagej.Dataset;
-import net.imagej.ImageJ;
-import net.imglib2.type.numeric.RealType;
-import org.scijava.command.InteractiveCommand;
-
-import javax.swing.*;
 import java.io.File;
 import java.util.Objects;
 
-//@Plugin(type = InteractiveCommand.class, menuPath = "Plugins>TWOMBLI")
-//public class TWOMBLI<T extends RealType<T>> extends InteractiveCommand {
-public class TWOMBLI implements PlugIn {
+//import ij.IJ;
+import ij.IJ;
+import net.imagej.ImageJ;
+
+public class TWOMBLI {
 
     private static final boolean DEBUG_FLAG = true;
 
@@ -64,57 +55,11 @@ public class TWOMBLI implements PlugIn {
         return Objects.requireNonNull(plugins_folder.list((dir, name) -> name.contains(plugin_name))).length > 0;
     }
 
-//    public static void main(final String... args) throws Exception {
-//        final ImageJ ij = new ImageJ();
-//        ij.ui().showUI();
-//
-//        // Load a dummy dataset
-//        final File file = ij.ui().chooseFile(null, "open");
-//        if (file == null) {
-//            return;
-//        }
-//
-//        // Load the dataset
-//        final Dataset dataset = ij.scifio().datasetIO().open(file.getPath());
-//        ij.ui().show(dataset);
-//        ij.command().run(TWOMBLI.class, true);
-//    }
 
-//    @Override
-//    public void run() {
-//        // TODO: Do something!
-//    }
-
-    @Override
-    public void run(String s) {
-        // Grab our current image or 'invite' the user to open one!
-        ImagePlus initialImage = WindowManager.getCurrentImage();
-        if (initialImage == null) {
-            // Inform the user?
-            initialImage = IJ.openImage();
-            if (initialImage == null) {
-                return;
-            }
-        }
-
-        ImageStack twombliImageStack = initialImage.getImageStack().duplicate();
-        ImagePlus displayImage = new ImagePlus(initialImage.getTitle(), twombliImageStack);
-        displayImage.setTitle("TWOMBLI");
-        displayImage.setSlice(initialImage.getCurrentSlice());
-
-        // Hide the old image
-        initialImage.getWindow().setVisible(false);
-
-        // TODO: Evaluate if we need to exclude 3d images
-        // TODO: Exclude images?
-        // TODO: Bulk/batch
-
-        // Display our GUI for this plugin
-        SwingUtilities.invokeLater(
-                () -> {
-                    TWOMBLIWindow window = new TWOMBLIWindow(displayImage);
-                    window.pack();
-                }
-        );
+    // Entrant for debugging via IDE
+    public static void main(final String... args) throws Exception {
+        final ImageJ ij = new ImageJ();
+        ij.launch(args);
+        ij.command().run(TWOMBLIConfigurator.class, true);
     }
 }
