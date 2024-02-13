@@ -13,7 +13,7 @@
     </parent>
 
     <groupId>uk.ac.franciscrickinstitute</groupId>
-    <artifactId>TWOMBLI</artifactId>
+    <artifactId>TWOMBLI_</artifactId>
     <version>0.0.0</version>
 
     <name>TWOMBLI</name>
@@ -240,22 +240,37 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.4.2</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>dist</id>
+                        <id>make-assembly</id>
                         <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
-                        <configuration>
-                            <descriptorRefs>
-                                <descriptorRef>
-                                    jar-with-dependencies
-                                </descriptorRef>
-                            </descriptorRefs>
-                        </configuration>
                     </execution>
                 </executions>
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>dist</id>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>single</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <descriptorRefs>-->
+<!--                                <descriptorRef>-->
+<!--                                    jar-with-dependencies-->
+<!--                                </descriptorRef>-->
+<!--                            </descriptorRefs>-->
+<!--                            <appendAssemblyId>false</appendAssemblyId>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
             </plugin>
         </plugins>
     </build>
