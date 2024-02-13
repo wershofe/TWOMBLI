@@ -95,38 +95,37 @@ public class TWOMBLIRunner implements Command {
             this.filePrefix = fileInfo.fileName.substring(0, fileInfo.fileName.lastIndexOf("."));
         }
 
-        // Create our required folders - note, other processes could be doing the same
+        // Create our required folders
+        // note, other processes could be doing the same, so we don't bail if something goes wrong.
         String masksDirectory = this.outputPath + File.separator + "masks";
-        String maskImageDirectory = masksDirectory + File.separator + this.filePrefix;
+        String maskImageDirectoryPath = masksDirectory + File.separator + this.filePrefix;
         String hdmDirectory = this.outputPath + File.separator + "hdm";
         String hdmResultsDirectory = this.outputPath + File.separator + "hdm_csvs";
         String gapAnalysisDirectory = this.outputPath + File.separator + "gap_analysis";
-        String gapAnalysisDirectoryArrays = gapAnalysisDirectory + File.separator + "arrays";
         try {
-            Files.createDirectories(Paths.get(maskImageDirectory));
+            Files.createDirectories(Paths.get(maskImageDirectoryPath));
             Files.createDirectories(Paths.get(hdmDirectory));
             Files.createDirectories(Paths.get(hdmResultsDirectory));
             Files.createDirectories(Paths.get(gapAnalysisDirectory));
-            Files.createDirectories(Paths.get(gapAnalysisDirectoryArrays));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // Run HDM FIRST as something about anamorf alters our classpath...
+        // Run HDM FIRST as something about anamorf or its dependencies alters our classpath... (I think)
         this.runHDM(hdmDirectory, hdmResultsDirectory, this.img);
 
         // Actual image handles
-        String tmpMaskImagePath = maskImageDirectory + File.separator + this.filePrefix + "_masks.png";
+        String tmpMaskImagePath = maskImageDirectoryPath + File.separator + this.filePrefix + "_masks.png";
 
         // Detect ridges
         this.detectRidges(this.img, tmpMaskImagePath);
 
         // Run anamorf
-        this.runAnamorf(maskImageDirectory);
+        this.runAnamorf(maskImageDirectoryPath);
 
         // Move all files from the mask image directory to the masks directory
-        File sourceDirectory = new File(maskImageDirectory);
-        File[] files = sourceDirectory.listFiles();
+        File maskImageDirectory = new File(maskImageDirectoryPath);
+        File[] files = maskImageDirectory.listFiles();
         assert files != null;
         try {
             for (File file : files) {
@@ -144,7 +143,9 @@ public class TWOMBLIRunner implements Command {
                 }
             }
 
-            this.deleteDirectory(sourceDirectory);
+            // Delete the contents of the source directory
+            FileUtils.deleteDirectoryContents(maskImageDirectory);
+            maskImageDirectory.delete();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -164,19 +165,6 @@ public class TWOMBLIRunner implements Command {
         // Output handling
 //        this.closeNonImages();
         this.output = maskImage;
-    }
-
-    private void deleteDirectory(File sourceDirectory) {
-        File[] files = sourceDirectory.listFiles();
-        assert files != null;
-        for (File file : files) {
-            if (file.isDirectory()) {
-                this.deleteDirectory(file);
-            } else {
-                file.delete();
-            }
-        }
-        sourceDirectory.delete();
     }
 
     private void detectRidges(ImagePlus inputImage, String maskImage) {
@@ -293,7 +281,7 @@ public class TWOMBLIRunner implements Command {
             // Custom params
             else {
                 File propsFile = new File(this.anamorfPropertiesFile);
-                props.loadFromXML(new FileInputStream(propsFile));
+                props.loadFromXML(Files.newInputStream(propsFile.toPath()));
             }
         }
 
@@ -385,6 +373,11 @@ public class TWOMBLIRunner implements Command {
             return;
         }
 
+        RoiManager roiManager = RoiManager.getInstance();
+        if (roiManager != null) {
+            roiManager.reset();
+        }
+
         // Wrap everything in a try catch because we are writing to the file line by line
         int width = maskImage.getWidth();
         int height = maskImage.getHeight();
@@ -392,6 +385,10 @@ public class TWOMBLIRunner implements Command {
         IJ.run(maskImage, "Crop", "");
         IJ.run(maskImage, "Canvas Size...", "width=" + width + " height=" + height + " position=Center zero");
         IJ.run(maskImage, "Max Inscribed Circles", "minimum_disk=" + this.minimumGapDiameter + " minimum_similarity=0.50 closeness=5");
+
+        if (roiManager == null) {
+            roiManager = RoiManager.getInstance();
+        }
 
         // ROIs
         int nROIs = RoiManager.getInstance().getCount();
@@ -401,7 +398,6 @@ public class TWOMBLIRunner implements Command {
         WindowManager.setTempCurrentImage(duplicateImage);
         IJ.run(duplicateImage, "RGB Color", "");
         IJ.setForegroundColor(255, 0, 0);
-        RoiManager roiManager = RoiManager.getInstance();
         for (int i = 0; i < nROIs; i++) {
             roiManager.select(duplicateImage, i);
             Roi roi = roiManager.getRoi(i);
@@ -413,6 +409,7 @@ public class TWOMBLIRunner implements Command {
         WindowManager.setTempCurrentImage(null);
 
         // Perform our measurements
+        WindowManager.setTempCurrentImage(maskImage);
         Analyzer.setMeasurement(Analyzer.AREA, true);
         roiManager.runCommand("measure");
         ResultsTable resultsTable = ResultsTable.getResultsTable();
@@ -437,7 +434,7 @@ public class TWOMBLIRunner implements Command {
         double ninetyFivePercentile = this.percentile(areas, 95);
 
         // Write this to an individual file for later aggregation
-        String individualGapAnalysisFilePath = gapAnalysisDirectory + File.separator + this.filePrefix + "_individual_gaps.csv";
+        String individualGapAnalysisFilePath = gapAnalysisDirectory + File.separator + this.filePrefix + "_gaps.csv";
         File individualGapAnalysisFile = new File(individualGapAnalysisFilePath);
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(individualGapAnalysisFile))) {
             bw.write(this.filePrefix + " " + mean + " " + standardDeviation + " " + fivePercentile + " " + fiftyPercentile + " " + ninetyFivePercentile);
@@ -447,7 +444,7 @@ public class TWOMBLIRunner implements Command {
         }
 
         // Write the array to file
-        String individualGapAnalysisArrayFilePath = gapAnalysisDirectory + File.separator + "arrays" + File.separator +  this.filePrefix + "_area_arrays.csv";
+        String individualGapAnalysisArrayFilePath = gapAnalysisDirectory + File.separator +  this.filePrefix + "_area_arrays.csv";
         File individualGapAnalysisArrayFile = new File(individualGapAnalysisArrayFilePath);
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(individualGapAnalysisArrayFile))) {
             for (double area : areas) {
@@ -457,6 +454,7 @@ public class TWOMBLIRunner implements Command {
         catch (IOException e) {
             e.printStackTrace();
         }
+        WindowManager.setTempCurrentImage(null);
     }
 
     private double percentile(double[] values, double percentile) {

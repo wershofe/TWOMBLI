@@ -1,15 +1,12 @@
 package uk.ac.franciscrickinstitute;
 
 import javax.swing.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.WindowManager;
-import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.module.ModuleService;
@@ -28,8 +25,9 @@ public class TWOMBLIConfigurator implements Command {
     @Parameter
     protected CommandService commandService;
 
-    @Parameter
-    protected StatusService statusService;
+    // This doesn't seem to work in whatever odd amalgamation of old imagej and new scijava we have
+//    @Parameter
+//    protected StatusService statusService;
 
     @Parameter
     protected ModuleService moduleService;

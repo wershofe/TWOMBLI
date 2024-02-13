@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
+import ij.gui.YesNoCancelDialog;
 import org.scijava.command.CommandModule;
 
 // Logservice integration
@@ -31,7 +33,7 @@ public class TWOMBLIWindow extends StackWindow {
     private static final double MIN_MAGNIFICATION = 1/72.0;
 
     private final ImagePlus originalImage;
-    private final TWOMBLIConfigurator plugin;
+    final TWOMBLIConfigurator plugin;
     private final JFormattedTextField minimumLineWidthField;
     private final JFormattedTextField maximumLineWidthField;
     private final JCheckBox darklinesCheckbox;
@@ -43,8 +45,14 @@ public class TWOMBLIWindow extends StackWindow {
     private final JFormattedTextField contrastSaturationField;
     private final JCheckBox gapAnalysisCheckbox;
     private final JFormattedTextField gapAnalysisDiameterField;
+    private final JButton anamorfButton;
+    private final JButton infoButton;
+    private final JButton selectOutputButton;
+    private final JLabel selectedOutputField;
     private final JButton runPreviewButton;
+    private final JButton revertPreview;
     private final JButton selectBatchButton;
+    private JLabel selectedBatchField;
     private final JButton runButton;
 
     private String outputDirectory;
@@ -56,13 +64,10 @@ public class TWOMBLIWindow extends StackWindow {
     private LinkedList<ImagePlus> processQueue = new LinkedList<>();
     private List<CommandModule> finishedFutures = new ArrayList<>();
     private int progressBarCurrent;
-    private int progressBarMax;
+    private int progressBarMax;;
 
     /*
     TODO: UX:
-    - Add a progress bar / status update to the actions
-    - Think about how to handle preview outputs.
-    - Think about a button to restore the preview?
     - Think about previewing each step?
      */
 
@@ -76,17 +81,9 @@ public class TWOMBLIWindow extends StackWindow {
         // Image display
         final ImageCanvas canvas = this.getCanvas();
 
-        // Info button
-        JButton infoButton = new JButton("Information!");
-        infoButton.setToolTipText("Get information about TWOMBLI.");
-        ActionListener infoListener = e -> this.showInfo();
-        infoButton.addActionListener(infoListener);
-
-        // Select output directory button
-        JButton selectOutputButton = new JButton("Select Output Directory (Required!)");
-        selectOutputButton.setToolTipText("Choose a directory to output all the data. This includes preview data!");
-        ActionListener selectOutputListener = e -> this.getOutputDirectory();
-        selectOutputButton.addActionListener(selectOutputListener);
+        // Layouts
+        FlowLayout panelLayout = new FlowLayout();
+        panelLayout.setAlignment(FlowLayout.LEFT);
 
         // Minimum line width panel
         JLabel minimLineWidthInfo = new JLabel("Minimum Line Width (px):");
@@ -99,7 +96,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.minimumLineWidthField = new JFormattedTextField(intFormat);
         this.minimumLineWidthField.setValue(5);
         JPanel minimumLineWidthPanel = new JPanel();
-        minimumLineWidthPanel.setLayout(new FlowLayout());
+        minimumLineWidthPanel.setLayout(panelLayout);
         minimumLineWidthPanel.setToolTipText("Minimum line width in pixels. This should approximate the size of the smallest matrix fibres.");
         minimumLineWidthPanel.add(minimLineWidthInfo);
         minimumLineWidthPanel.add(this.minimumLineWidthField);
@@ -109,7 +106,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.maximumLineWidthField = new JFormattedTextField(intFormat);
         this.maximumLineWidthField.setValue(5);
         JPanel maximumLineWidthPanel = new JPanel();
-        maximumLineWidthPanel.setLayout(new FlowLayout());
+        maximumLineWidthPanel.setLayout(panelLayout);
         maximumLineWidthPanel.setToolTipText("Maximum line width in pixels. This should approximate the size of the largest matrix fibres.");
         maximumLineWidthPanel.add(maximumLineWidthInfo);
         maximumLineWidthPanel.add(this.maximumLineWidthField);
@@ -123,7 +120,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.minimumBranchLengthField = new JFormattedTextField(intFormat);
         this.minimumBranchLengthField.setValue(10);
         JPanel minimumBranchLengthPanel = new JPanel();
-        minimumBranchLengthPanel.setLayout(new FlowLayout());
+        minimumBranchLengthPanel.setLayout(panelLayout);
         minimumBranchLengthPanel.setToolTipText("The minimum length in pixels before a branch can occur.");
         minimumBranchLengthPanel.add(minimumBranchLengthInfo);
         minimumBranchLengthPanel.add(this.minimumBranchLengthField);
@@ -133,7 +130,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.minimumCurvatureWindowField = new JFormattedTextField(intFormat);
         this.minimumCurvatureWindowField.setValue(40);
         JPanel minimumCurvatureWindowPanel = new JPanel();
-        minimumCurvatureWindowPanel.setLayout(new FlowLayout());
+        minimumCurvatureWindowPanel.setLayout(panelLayout);
         minimumCurvatureWindowPanel.setToolTipText("The minimum curvature window for Anamorf.");
         minimumCurvatureWindowPanel.add(minimumCurvatureWindowInfo);
         minimumCurvatureWindowPanel.add(this.minimumCurvatureWindowField);
@@ -143,7 +140,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.maximumCurvatureWindowField = new JFormattedTextField(intFormat);
         this.maximumCurvatureWindowField.setValue(40);
         JPanel maximumCurvatureWindowPanel = new JPanel();
-        maximumCurvatureWindowPanel.setLayout(new FlowLayout());
+        maximumCurvatureWindowPanel.setLayout(panelLayout);
         maximumCurvatureWindowPanel.setToolTipText("The minimum curvature window for Anamorf.");
         maximumCurvatureWindowPanel.add(maximumCurvatureWindowInfo);
         maximumCurvatureWindowPanel.add(this.maximumCurvatureWindowField);
@@ -153,7 +150,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.maximumDisplayHDMField = new JFormattedTextField(intFormat);
         this.maximumDisplayHDMField.setValue(40);
         JPanel maximumDisplayHDMPanel = new JPanel();
-        maximumDisplayHDMPanel.setLayout(new FlowLayout());
+        maximumDisplayHDMPanel.setLayout(panelLayout);
         maximumDisplayHDMPanel.setToolTipText("The maximum display HDM.");
         maximumDisplayHDMPanel.add(maximumDisplayHDMInfo);
         maximumDisplayHDMPanel.add(this.maximumDisplayHDMField);
@@ -163,7 +160,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.curvatureStepSizeField = new JFormattedTextField(intFormat);
         this.curvatureStepSizeField.setValue(10);
         JPanel curvatureStepSizePanel = new JPanel();
-        curvatureStepSizePanel.setLayout(new FlowLayout());
+        curvatureStepSizePanel.setLayout(panelLayout);
         curvatureStepSizePanel.setToolTipText("The step size for the curvature window.");
         curvatureStepSizePanel.add(curvatureStepSizeInfo);
         curvatureStepSizePanel.add(this.curvatureStepSizeField);
@@ -179,7 +176,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.contrastSaturationField = new JFormattedTextField(longFormatter);
         this.contrastSaturationField.setValue(0.35);
         JPanel contrastSaturationPanel = new JPanel();
-        contrastSaturationPanel.setLayout(new FlowLayout());
+        contrastSaturationPanel.setLayout(panelLayout);
         contrastSaturationPanel.setToolTipText("The contrast saturation. (Between 0 and 1)");
         contrastSaturationPanel.add(contrastSaturationInfo);
         contrastSaturationPanel.add(this.contrastSaturationField);
@@ -193,44 +190,115 @@ public class TWOMBLIWindow extends StackWindow {
         this.gapAnalysisDiameterField = new JFormattedTextField(intFormat);
         this.gapAnalysisDiameterField.setValue(0);
         JPanel gapAnalysisDiameterPanel = new JPanel();
-        gapAnalysisDiameterPanel.setLayout(new FlowLayout());
+        gapAnalysisDiameterPanel.setLayout(panelLayout);
         gapAnalysisDiameterPanel.setToolTipText("The minimum diameter for gap analysis. 0 finds only 1.");
         gapAnalysisDiameterPanel.add(gapAnalysisDiameterInfo);
         gapAnalysisDiameterPanel.add(this.gapAnalysisDiameterField);
 
         // Anamorf properties
-        JButton anamorfButton = new JButton("Add Custom Anamorf Properties File (.xml)");
-        anamorfButton.setToolTipText("Add a custom anamorf properties file to use for the analysis - if none provided, defaults will be used.");
+        this.anamorfButton = new JButton("Add Custom Anamorf Properties File (.xml)");
+        this.anamorfButton.setToolTipText("Add a custom anamorf properties file to use for the analysis - if none provided, defaults will be used.");
         ActionListener anamorfListener = e -> this.getAnamorfProperties();
-        anamorfButton.addActionListener(anamorfListener);
+        this.anamorfButton.addActionListener(anamorfListener);
+
+        // Info button
+        this.infoButton = new JButton("Information!");
+        this.infoButton.setToolTipText("Get information about TWOMBLI.");
+        ActionListener infoListener = e -> this.showInfo();
+        this.infoButton.addActionListener(infoListener);
+
+        // Select output directory button
+        this.selectOutputButton = new JButton("Select Output Directory (Required!)");
+        this.selectOutputButton.setToolTipText("Choose a directory to output all the data. This includes preview data!");
+        ActionListener selectOutputListener = e -> this.getOutputDirectory();
+        this.selectOutputButton.addActionListener(selectOutputListener);
+        this.selectedOutputField = new JLabel("No output directory selected.");
 
         // Run Preview button
         this.runPreviewButton = new JButton("Run Preview");
         this.runPreviewButton.setToolTipText("Run TWOMBLI with the current configuration on the preview image.");
         ActionListener runPreviewListener = e -> this.runPreviewProcess();
         this.runPreviewButton.addActionListener(runPreviewListener);
-        this.runPreviewButton.setEnabled(false);
 
         // Revert preview button
-        JButton revertPreview = new JButton("Revert Preview");
-        revertPreview.setToolTipText("Revert the preview image to the original.");
+        this.revertPreview = new JButton("Revert Preview");
+        this.revertPreview.setToolTipText("Revert the preview image to the original.");
         ActionListener revertPreviewListener = e -> this.revertPreview();
-        revertPreview.addActionListener(revertPreviewListener);
-        revertPreview.setEnabled(false);
+        this.revertPreview.addActionListener(revertPreviewListener);
 
         // Select batch button
         this.selectBatchButton = new JButton("Select Batch");
         this.selectBatchButton.setToolTipText("Choose a directory containing multiple images to run.");
         ActionListener selectBatchListener = e -> this.getBatchDirectory();
         this.selectBatchButton.addActionListener(selectBatchListener);
-        this.selectBatchButton.setEnabled(false);
+        this.selectedBatchField = new JLabel("No batch directory selected.");
 
         // Run button
         this.runButton = new JButton("Run Batch");
         this.runButton.setToolTipText("Run TWOMBLI with the current configuration on the entire batch.");
         ActionListener runListener = e -> this.runProcess();
         this.runButton.addActionListener(runListener);
-        this.runButton.setEnabled(false);
+
+        // Configuration panel
+        GridBagLayout configPanelLayout = new GridBagLayout();
+        JPanel configPanel = new JPanel();
+        configPanel.setBorder(BorderFactory.createTitledBorder("Configuration"));
+        configPanel.setLayout(configPanelLayout);
+        GridBagConstraints configPanelConstraints = new GridBagConstraints();
+        configPanelConstraints.anchor = GridBagConstraints.NORTH;
+        configPanelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        configPanelConstraints.gridwidth = 1;
+        configPanelConstraints.gridheight = 1;
+        configPanelConstraints.gridx = 0;
+        configPanelConstraints.gridy = 0;
+        configPanelConstraints.insets = new Insets(5, 5, 5, 5);
+
+        // Minimum line width
+        configPanel.add(minimumLineWidthPanel, configPanelConstraints);
+
+        // Maximum line width
+        configPanelConstraints.gridy++;
+        configPanel.add(maximumLineWidthPanel, configPanelConstraints);
+
+        // Darklines checkbox
+        configPanelConstraints.gridy++;
+        configPanel.add(this.darklinesCheckbox, configPanelConstraints);
+
+        // Minimum branch length
+        configPanelConstraints.gridy++;
+        configPanel.add(minimumBranchLengthPanel, configPanelConstraints);
+
+        // Minimum curvature window
+        configPanelConstraints.gridy++;
+        configPanel.add(minimumCurvatureWindowPanel, configPanelConstraints);
+
+        // Maximum curvature window
+        configPanelConstraints.gridy++;
+        configPanel.add(maximumCurvatureWindowPanel, configPanelConstraints);
+
+        // Curvature step size
+        configPanelConstraints.gridy++;
+        configPanel.add(curvatureStepSizePanel, configPanelConstraints);
+
+        // Anamorf properties
+        configPanelConstraints.gridy++;
+        configPanel.add(this.anamorfButton, configPanelConstraints);
+
+        // Maximum display HDM
+        configPanelConstraints.gridy++;
+        configPanel.add(maximumDisplayHDMPanel, configPanelConstraints);
+
+        // Contrast saturation
+        configPanelConstraints.gridy++;
+        configPanel.add(contrastSaturationPanel, configPanelConstraints);
+
+        // Gap analysis checkbox
+        configPanelConstraints.gridy++;
+        configPanel.add(this.gapAnalysisCheckbox, configPanelConstraints);
+
+        // Gap analysis diameter
+        configPanelConstraints.gridy++;
+        configPanel.add(gapAnalysisDiameterPanel, configPanelConstraints);
 
         // Sidebar panel
         GridBagLayout sidePanelLayout = new GridBagLayout();
@@ -245,68 +313,36 @@ public class TWOMBLIWindow extends StackWindow {
         sidePanelConstraints.gridy = 0;
         sidePanelConstraints.insets = new Insets(5, 5, 5, 5);
 
+        // Configuration panel
+        sidePanel.add(configPanel, sidePanelConstraints);
+
         // Help button
-        sidePanel.add(infoButton, sidePanelConstraints);
-
-        // Insert batch button
         sidePanelConstraints.gridy++;
-        sidePanel.add(selectOutputButton, sidePanelConstraints);
+        sidePanel.add(this.infoButton, sidePanelConstraints);
 
-        // Minimum line width
+        // Select Output Directory
         sidePanelConstraints.gridy++;
-        sidePanel.add(minimumLineWidthPanel, sidePanelConstraints);
+        sidePanel.add(this.selectOutputButton, sidePanelConstraints);
 
-        // Maximum line width
+        // Output directory
         sidePanelConstraints.gridy++;
-        sidePanel.add(maximumLineWidthPanel, sidePanelConstraints);
-
-        // Darklines checkbox
-        sidePanelConstraints.gridy++;
-        sidePanel.add(this.darklinesCheckbox, sidePanelConstraints);
-
-        // Minimum branch length
-        sidePanelConstraints.gridy++;
-        sidePanel.add(minimumBranchLengthPanel, sidePanelConstraints);
-
-        // Minimum curvature window
-        sidePanelConstraints.gridy++;
-        sidePanel.add(minimumCurvatureWindowPanel, sidePanelConstraints);
-
-        // Maximum curvature window
-        sidePanelConstraints.gridy++;
-        sidePanel.add(maximumCurvatureWindowPanel, sidePanelConstraints);
-
-        // Curvature step size
-        sidePanelConstraints.gridy++;
-        sidePanel.add(curvatureStepSizePanel, sidePanelConstraints);
-
-        // Anamorf properties
-        sidePanelConstraints.gridy++;
-        sidePanel.add(anamorfButton, sidePanelConstraints);
-
-        // Maximum display HDM
-        sidePanelConstraints.gridy++;
-        sidePanel.add(maximumDisplayHDMPanel, sidePanelConstraints);
-
-        // Contrast saturation
-        sidePanelConstraints.gridy++;
-        sidePanel.add(contrastSaturationPanel, sidePanelConstraints);
-
-        // Gap analysis checkbox
-        sidePanelConstraints.gridy++;
-        sidePanel.add(this.gapAnalysisCheckbox, sidePanelConstraints);
-
-        // Gap analysis diameter
-        sidePanelConstraints.gridy++;
-        sidePanel.add(gapAnalysisDiameterPanel, sidePanelConstraints);
+        sidePanel.add(this.selectedOutputField, sidePanelConstraints);
 
         // Insert run preview button
         sidePanelConstraints.gridy++;
         sidePanel.add(this.runPreviewButton, sidePanelConstraints);
 
-        // Insert output button
+        // Revert preview button
         sidePanelConstraints.gridy++;
-        sidePanel.add(selectBatchButton, sidePanelConstraints);
+        sidePanel.add(this.revertPreview, sidePanelConstraints);
+
+        // Select Batch
+        sidePanelConstraints.gridy++;
+        sidePanel.add(this.selectBatchButton, sidePanelConstraints);
+
+        // Batch directory
+        sidePanelConstraints.gridy++;
+        sidePanel.add(this.selectedBatchField, sidePanelConstraints);
 
         // Insert run button
         sidePanelConstraints.gridy++;
@@ -350,9 +386,45 @@ public class TWOMBLIWindow extends StackWindow {
         this.setLayout(windowLayout);
         this.add(contentPanel, windowConstraints);
 
+        // Disable all interactions until we have an output directory
+        this.toggleOutputAvailableInteractions(false);
+
         // Finish up and set our sizes
         this.pack();
         this.setMinimumSize(this.getPreferredSize());
+    }
+
+    private void toggleOutputAvailableInteractions(boolean state) {
+        this.minimumLineWidthField.setEnabled(state);
+        this.maximumLineWidthField.setEnabled(state);
+        this.darklinesCheckbox.setEnabled(state);
+        this.minimumBranchLengthField.setEnabled(state);
+        this.minimumCurvatureWindowField.setEnabled(state);
+        this.maximumCurvatureWindowField.setEnabled(state);
+        this.maximumDisplayHDMField.setEnabled(state);
+        this.curvatureStepSizeField.setEnabled(state);
+        this.contrastSaturationField.setEnabled(state);
+        this.gapAnalysisCheckbox.setEnabled(state);
+        this.gapAnalysisDiameterField.setEnabled(state);
+        this.anamorfButton.setEnabled(state);
+        this.runPreviewButton.setEnabled(state);
+        this.revertPreview.setEnabled(state);
+        this.selectBatchButton.setEnabled(state);
+        this.toggleRunButton(state);
+    }
+
+    private void toggleRunButton(boolean state) {
+        if (!state) {
+            this.runButton.setEnabled(false);
+            return;
+        }
+
+        if (this.batchPath == null) {
+            this.runButton.setEnabled(false);
+            return;
+        }
+
+        this.runButton.setEnabled(true);
     }
 
     private void zoomImage() {
@@ -391,31 +463,58 @@ public class TWOMBLIWindow extends StackWindow {
     private void getOutputDirectory() {
         String potential = IJ.getDirectory("Get output directory");
         if (!Files.isDirectory(Paths.get(potential))) {
-            this.runPreviewButton.setEnabled(false);
-            this.selectBatchButton.setEnabled(false);
-            this.runButton.setEnabled(false);
+            this.toggleOutputAvailableInteractions(false);
             return;
         }
 
+        // Ensure the directory is empty
+        boolean outcome = this.verifyOutputDirectoryIsEmpty(potential);
+        if (!outcome) {
+            return;
+        }
+
+        // Set the other actions as enabled
+        this.outputDirectory = potential;
+        this.selectedOutputField.setText(potential);
+        this.toggleOutputAvailableInteractions(true);
+    }
+
+    private boolean verifyOutputDirectoryIsEmpty(String potential) {
         // Output must be an empty directory
+        boolean foundFiles = false;
         try (Stream<Path> entries = Files.list(Paths.get(potential))) {
             if (entries.findFirst().isPresent()) {
-                this.plugin.statusService.warn("Output directory must be empty");
-                return;
+                foundFiles = true;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // Set the other actions as enabled
-        this.outputDirectory = potential;
-        this.runPreviewButton.setEnabled(true);
-        this.selectBatchButton.setEnabled(true);
-        this.runButton.setEnabled(true);
+        // Return if there were no files present
+        if (!foundFiles) {
+            return true;
+        }
+
+        YesNoCancelDialog dialog = new YesNoCancelDialog(
+                IJ.getInstance(),
+                "Output Directory Not Empty",
+                "The output directory is not empty. Continue and overwrite?",
+                "Delete Contents", "Cancel");
+        if (dialog.cancelPressed()) {
+            return false;
+        }
+
+        FileUtils.deleteDirectoryContents(new File(potential));
+        return true;
     }
 
     private void getAnamorfProperties() {
         String potential = IJ.getFilePath("Get anamorf properties");
+        if (potential == null) {
+            this.anamorfPropertiesFile = potential;
+            return;
+        }
+
         if (!Files.isRegularFile(Paths.get(potential)) && !potential.endsWith(".xml")) {
             return;
         }
@@ -426,12 +525,19 @@ public class TWOMBLIWindow extends StackWindow {
 
     private void getBatchDirectory() {
        String potential = IJ.getDirectory("Get Batch Folder");
+       if (potential == null) {
+           this.batchPath = potential;
+           return;
+       }
+
         if (!Files.isDirectory(Paths.get(potential))) {
             return;
         }
 
         // Set the other actions as enabled
         this.batchPath = potential;
+        this.selectedBatchField.setText(potential);
+        this.toggleRunButton(true);
     }
 
     private HashMap<String, Object> getInputs() {
@@ -462,9 +568,6 @@ public class TWOMBLIWindow extends StackWindow {
     }
 
     private void preparePreview() {
-        // TODO: Block input
-        // TODO: Progress bars
-
         // Just copy
         ImagePlus preview;
         if (this.originalImage.getImageStackSize() == 1) {
@@ -529,11 +632,20 @@ public class TWOMBLIWindow extends StackWindow {
     private void startProcessing() {
         this.inputs = this.getInputs();
 
+        // Empty our output directory (which should only contain previous run data)
+        boolean outcome = this.verifyOutputDirectoryIsEmpty(this.outputDirectory);
+        if (!outcome) {
+            this.processQueue.clear();
+            return;
+        }
+
         // Prepare a progress bar and block user input
         this.progressBarCurrent = 0;
         this.progressBarMax = this.processQueue.size();
-        this.plugin.statusService.showStatus(this.progressBarCurrent, this.progressBarMax, "Processing images");
+        IJ.showMessage("Processing Images. This may take a while. (Press OK to start.)");
+        IJ.showProgress(this.progressBarCurrent, this.progressBarMax);
 
+        // Process our first image
         this.processNext(true);
     }
 
@@ -541,7 +653,16 @@ public class TWOMBLIWindow extends StackWindow {
         ImagePlus img = this.processQueue.remove();
         this.inputs.put("img", img);
         Future<CommandModule> future = this.plugin.commandService.run(TWOMBLIRunner.class, false, inputs);
-        new Thread(new FuturePoller(this, future, isPreview)).start();
+
+        // Delay our polling to prevent weird race conditions
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+//        this.plugin.moduleService.waitFor(future);
+        Thread t = new Thread(new FuturePoller(this, future, isPreview));
+        t.start();
     }
 
     public void handleFutureComplete(Future<CommandModule> future, boolean isPreview) {
@@ -564,18 +685,61 @@ public class TWOMBLIWindow extends StackWindow {
         }
 
         // Check if we have more to process.
-        if (this.processQueue.size() > 0) {
+        if (!this.processQueue.isEmpty()) {
             this.progressBarCurrent += 1;
-            this.plugin.statusService.showStatus(this.progressBarCurrent, this.progressBarMax, "Processing images");
+            IJ.showProgress(this.progressBarCurrent, this.progressBarMax);
             this.processNext(false);
         }
 
         // Restore our gui functionality & close progress bars
         else {
-            this.plugin.statusService.clearStatus();
-        }
+            IJ.showProgress(1, 1);
+            this.generateSummaries();
 
-        // Reopen us?
-        this.setVisible(true);
+            // Reopen us?
+            this.setVisible(true);
+        }
+    }
+
+    private void generateSummaries() {
+        // Loop through our results and generate a summary
+        Path gapsOutputPath = Paths.get(this.outputDirectory, "gaps_summary.csv");
+        Path twombliOutputPath = Paths.get(this.outputDirectory, "twombli_summary.csv");
+        for (CommandModule output : this.finishedFutures) {
+            // Gather our basic info
+            String filePrefix = (String) output.getInput("filePrefix");
+            double alignment = (double) output.getOutput("alignment");
+            double dimension = (int) output.getOutput("dimension");
+            Path anamorfSummaryPath = Paths.get(this.outputDirectory, "masks", filePrefix + "_results.csv");
+            Path hdmSummaryPath = Paths.get(this.outputDirectory, "hdm_csvs", filePrefix + "_ResultsHDM.csv");
+            Path gapAnalysisPath = Paths.get(this.outputDirectory, "gap_analysis", filePrefix + "_gaps.csv");
+
+            // Write to our twombli summary
+            try {
+                List<String> anamorfEntries = Files.readAllLines(anamorfSummaryPath);
+                String anamorfData = anamorfEntries.get(anamorfEntries.size() - 1);
+
+                List<String> hdmEntries = Files.readAllLines(hdmSummaryPath);
+                String[] hdmData = hdmEntries.get(hdmEntries.size() - 1).split(",");
+
+                List<String> lines = new ArrayList<>();
+                lines.add(anamorfData + "," + hdmData[hdmData.length - 1] + "," + alignment + "," + dimension);
+                Files.write(twombliOutputPath, lines, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            }
+
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            // Write to our gap analysis summary
+            if (this.gapAnalysisCheckbox.isSelected()) {
+                try {
+                    List<String> lines = Files.readAllLines(gapAnalysisPath);
+                    Files.write(gapsOutputPath, lines, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 }

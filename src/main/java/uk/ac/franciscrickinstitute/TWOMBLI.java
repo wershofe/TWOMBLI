@@ -3,7 +3,6 @@ package uk.ac.franciscrickinstitute;
 import java.io.File;
 import java.util.Objects;
 
-//import ij.IJ;
 import ij.IJ;
 import net.imagej.ImageJ;
 
