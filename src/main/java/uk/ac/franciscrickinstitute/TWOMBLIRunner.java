@@ -29,58 +29,58 @@ import org.scijava.plugin.Plugin;
 public class TWOMBLIRunner implements Command {
 
     @Parameter
-    private ImagePlus img;
+    public ImagePlus img;
 
     @Parameter
-    private String outputPath = null;
+    public String outputPath = null;
 
     @Parameter
-    private String filePrefix = null;
+    public String filePrefix = null;
 
     @Parameter
-    private int minimumLineWidth = 5;
+    public int minimumLineWidth = 5;
 
     @Parameter
-    private int maximumLineWidth = 20;
+    public int maximumLineWidth = 20;
 
     @Parameter
-    private boolean darkLines = false;
+    public boolean darkLines = false;
 
     @Parameter
-    private int minimumBranchLength = 10;
+    public int minimumBranchLength = 10;
 
     @Parameter
-    private String anamorfPropertiesFile = null;
+    public String anamorfPropertiesFile = null;
 
     @Parameter
-    private int minimumCurvatureWindow = 40;
+    public int minimumCurvatureWindow = 40;
 
     @Parameter
-    private int curvatureWindowStepSize = 10;
+    public int curvatureWindowStepSize = 10;
 
     @Parameter
-    private int maximumCurvatureWindow = 40;
+    public int maximumCurvatureWindow = 40;
 
     @Parameter
-    private int maximumDisplayHDM = 200;
+    public int maximumDisplayHDM = 200;
 
     @Parameter
-    private double contrastSaturation = 0.35;
+    public double contrastSaturation = 0.35;
 
     @Parameter
-    private boolean performGapAnalysis = true;
+    public boolean performGapAnalysis = true;
 
     @Parameter
-    private int minimumGapDiameter = 0;
+    public int minimumGapDiameter = 0;
 
     @Parameter(type=ItemIO.OUTPUT)
-    private ImagePlus output;
+    public ImagePlus output;
 
     @Parameter(type=ItemIO.OUTPUT)
-    private double alignment;
+    public double alignment;
 
     @Parameter(type=ItemIO.OUTPUT)
-    private int dimension;
+    public int dimension;
 
     // Magic number declarations
     private static final double HIGH_CONTRAST_THRESHOLD = 120.0;

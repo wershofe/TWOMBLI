@@ -32,31 +32,6 @@ public class FuturePoller implements Runnable {
             }
         }
 
-        // Get the outcome and check if it's an exception
-        CommandModule possibleException;
-        try {
-            possibleException = this.future.get();
-        } catch (InterruptedException | ExecutionException | RuntimeException e) {
-            throw new RuntimeException(e);
-        }
-
-//        this.window.plugin.moduleService.waitFor(this.future);
-
-        // Apparently isDone isn't enough, we need to check the future itself... (I deleted the real comment here because it was very rude)
-//        CommandModule module = null;
-//        while (module == null) {
-//            try {
-//                module = this.future.get();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                try {
-//                    Thread.sleep(1000);
-//                } catch (InterruptedException ex) {
-//                    throw new RuntimeException(ex);
-//                }
-//            }
-//        }
-
         // Inject our preview image
         SwingUtilities.invokeLater(() -> window.handleFutureComplete(future, isPreview));
     }

@@ -468,7 +468,7 @@ public class TWOMBLIWindow extends StackWindow {
         }
 
         // Ensure the directory is empty
-        boolean outcome = this.verifyOutputDirectoryIsEmpty(potential);
+        boolean outcome = FileUtils.verifyOutputDirectoryIsEmpty(potential);
         if (!outcome) {
             return;
         }
@@ -477,35 +477,6 @@ public class TWOMBLIWindow extends StackWindow {
         this.outputDirectory = potential;
         this.selectedOutputField.setText(potential);
         this.toggleOutputAvailableInteractions(true);
-    }
-
-    private boolean verifyOutputDirectoryIsEmpty(String potential) {
-        // Output must be an empty directory
-        boolean foundFiles = false;
-        try (Stream<Path> entries = Files.list(Paths.get(potential))) {
-            if (entries.findFirst().isPresent()) {
-                foundFiles = true;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Return if there were no files present
-        if (!foundFiles) {
-            return true;
-        }
-
-        YesNoCancelDialog dialog = new YesNoCancelDialog(
-                IJ.getInstance(),
-                "Output Directory Not Empty",
-                "The output directory is not empty. Continue and overwrite?",
-                "Delete Contents", "Cancel");
-        if (dialog.cancelPressed()) {
-            return false;
-        }
-
-        FileUtils.deleteDirectoryContents(new File(potential));
-        return true;
     }
 
     private void getAnamorfProperties() {
@@ -633,7 +604,7 @@ public class TWOMBLIWindow extends StackWindow {
         this.inputs = this.getInputs();
 
         // Empty our output directory (which should only contain previous run data)
-        boolean outcome = this.verifyOutputDirectoryIsEmpty(this.outputDirectory);
+        boolean outcome = FileUtils.verifyOutputDirectoryIsEmpty(this.outputDirectory);
         if (!outcome) {
             this.processQueue.clear();
             return;
@@ -654,13 +625,14 @@ public class TWOMBLIWindow extends StackWindow {
         this.inputs.put("img", img);
         Future<CommandModule> future = this.plugin.commandService.run(TWOMBLIRunner.class, false, inputs);
 
-        // Delay our polling to prevent weird race conditions
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        // Delay our polling to prevent weird race conditions
+//        try {
+//            Thread.sleep(1000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 //        this.plugin.moduleService.waitFor(future);
+
         Thread t = new Thread(new FuturePoller(this, future, isPreview));
         t.start();
     }
