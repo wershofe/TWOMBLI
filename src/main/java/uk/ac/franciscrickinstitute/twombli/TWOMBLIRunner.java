@@ -1,4 +1,4 @@
-package uk.ac.franciscrickinstitute;
+package uk.ac.franciscrickinstitute.twombli;
 
 import java.awt.*;
 import java.io.*;
@@ -25,7 +25,7 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, headless = true, menuPath = "TWOMBLI>Runner")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>TWOMBLI>Runner")
 public class TWOMBLIRunner implements Command {
 
     @Parameter
@@ -88,6 +88,12 @@ public class TWOMBLIRunner implements Command {
 
     @Override
     public void run() {
+        // Validate our runtime environment
+        boolean outcome = Dependencies.checkRootDependencies();
+        if (!outcome) {
+            return;
+        }
+
         // TODO: Validate 3d stack behavior
         // If our output path is none, build up our prerequisites
         if (this.outputPath == null || this.filePrefix == null) {

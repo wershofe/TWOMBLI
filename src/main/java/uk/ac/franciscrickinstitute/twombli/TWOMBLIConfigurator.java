@@ -1,6 +1,7 @@
-package uk.ac.franciscrickinstitute;
+package uk.ac.franciscrickinstitute.twombli;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -13,7 +14,7 @@ import org.scijava.module.ModuleService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, headless = true, menuPath = "TWOMBLI>Configurator")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>TWOMBLI>Configurator")
 public class TWOMBLIConfigurator implements Command {
 
     public static final ArrayList<String> EXTENSIONS = new ArrayList<>(Arrays.asList(
@@ -34,7 +35,11 @@ public class TWOMBLIConfigurator implements Command {
 
     @Override
     public void run() {
-        // TODO: Embed this image grabber into the window itself?
+        // Validate our runtime environment
+        boolean outcome = Dependencies.checkRootDependencies();
+        if (!outcome) {
+            return;
+        }
 
         // Grab our current image or 'invite' the user to open one!
         ImagePlus initialImage = WindowManager.getCurrentImage();

@@ -1,4 +1,4 @@
-package uk.ac.franciscrickinstitute;
+package uk.ac.franciscrickinstitute.twombli;
 
 import java.io.File;
 import java.io.IOException;

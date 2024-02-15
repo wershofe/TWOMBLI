@@ -1,4 +1,4 @@
-package uk.ac.franciscrickinstitute;
+package uk.ac.franciscrickinstitute.twombli;
 
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
@@ -17,13 +17,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.stream.Stream;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
-import ij.gui.YesNoCancelDialog;
+import ij.gui.WaitForUserDialog;
 import org.scijava.command.CommandModule;
 
 // Logservice integration
@@ -457,7 +456,19 @@ public class TWOMBLIWindow extends StackWindow {
     }
 
     private void showInfo() {
-        return;
+        String info = "TWOMBLI is a tool for the analysis of matrix fibres in images.\n" +
+                "It is designed to be used with images of the extracellular matrix.\n" +
+                "For more information, please see: {TODO:paper_linl}\n" +
+                "For a video on how to use TWOMBLI, please visit: {TODO:video_link}\n" +
+                "Please report any issues to: {TODO:github_link}\n" +
+                "TWOMBLI utilises various third party tools and libraries, including:\n" +
+                " - OrientationJ: {TODO:orientation_link}\n" +
+                " - Anamorf: {TODO:anamorf_link}\n" +
+                " - IJ-RidgeDetection: {TODO:ij_ridge_link}\n" +
+                " - MaxInscribedCircles: {TODO:circles_link}\n" +
+                " - Bio-Formats: {TODO:bioformats_link}\n";
+        WaitForUserDialog dialog = new WaitForUserDialog("TWOMBLI Information", info);
+        dialog.show();
     }
 
     private void getOutputDirectory() {

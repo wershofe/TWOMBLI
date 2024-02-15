@@ -1,7 +1,6 @@
-package uk.ac.franciscrickinstitute;
+package uk.ac.franciscrickinstitute.twombli;
 
 import javax.swing.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.scijava.command.CommandModule;

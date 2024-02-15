@@ -12,7 +12,7 @@
         <relativePath />
     </parent>
 
-    <groupId>uk.ac.franciscrickinstitute</groupId>
+    <groupId>uk.ac.franciscrickinstitute.twombli</groupId>
     <artifactId>TWOMBLI_</artifactId>
     <version>0.0.0</version>
 
@@ -136,23 +136,28 @@
         <dependency>
             <groupId>org.scijava</groupId>
             <artifactId>scijava-plugins-commands</artifactId>
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej</artifactId>
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej-legacy</artifactId>
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>ome</groupId>
             <artifactId>bio-formats_plugins</artifactId>
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>com.github.Biomedical-Imaging-Group</groupId>
             <artifactId>OrientationJ</artifactId>
             <version>ce968334bc</version> <!-- corresponds to 2.0.5 -->
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>com.github.djpbarry</groupId>
@@ -221,39 +226,52 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>2.20.0</version>
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>2.20.0</version>
+<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.20.0</version>
+<!--            <scope>provided</scope>-->
         </dependency>
     </dependencies>
     <build>
-        <finalName>TWOMBLI</finalName>
+        <finalName>TWOMBLI_</finalName>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.4.2</version>
+                <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
+            </plugin>
+        </plugins>
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-assembly-plugin</artifactId>-->
+<!--                <version>3.4.2</version>-->
+<!--                <configuration>-->
+<!--                    <descriptorRefs>-->
+<!--                        <descriptorRef>jar-with-dependencies</descriptorRef>-->
+<!--                    </descriptorRefs>-->
+<!--                    <appendAssemblyId>false</appendAssemblyId>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>make-assembly</id>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>single</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
 <!--                <executions>-->
 <!--                    <execution>-->
 <!--                        <id>dist</id>-->
@@ -271,7 +289,7 @@
 <!--                        </configuration>-->
 <!--                    </execution>-->
 <!--                </executions>-->
-            </plugin>
-        </plugins>
+<!--            </plugin>-->
+<!--        </plugins>-->
     </build>
 </project>

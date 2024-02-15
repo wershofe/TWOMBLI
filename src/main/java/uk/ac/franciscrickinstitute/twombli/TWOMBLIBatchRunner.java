@@ -1,4 +1,4 @@
-package uk.ac.franciscrickinstitute;
+package uk.ac.franciscrickinstitute.twombli;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,21 +7,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import ij.IJ;
 import ij.ImagePlus;
 import org.scijava.command.Command;
-import org.scijava.command.CommandModule;
-import org.scijava.command.CommandService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, headless = true, menuPath = "TWOMBLI>Batch Runner")
+@Plugin(type = Command.class, headless = true, menuPath = "Plugins>TWOMBLI>Batch Runner")
 public class TWOMBLIBatchRunner implements Command {
 
     @Parameter
@@ -74,6 +68,12 @@ public class TWOMBLIBatchRunner implements Command {
 
     @Override
     public void run() {
+        // Validate our runtime environment
+        boolean outcome = Dependencies.checkRootDependencies();
+        if (!outcome) {
+            return;
+        }
+
         // Identify our batch targets
         File sourceDirectory = new File(this.inputPath);
         File[] files = sourceDirectory.listFiles((dir, name) -> {
@@ -92,7 +92,7 @@ public class TWOMBLIBatchRunner implements Command {
         }
 
         // Empty our output directory (which should only contain previous run data)
-        boolean outcome = FileUtils.verifyOutputDirectoryIsEmpty(this.outputPath);
+        outcome = FileUtils.verifyOutputDirectoryIsEmpty(this.outputPath);
         if (!outcome) {
             return;
         }
@@ -100,7 +100,8 @@ public class TWOMBLIBatchRunner implements Command {
         // Prepare a progress bar and block user input
         this.progressBarCurrent = 0;
         this.progressBarMax = files.length;
-        IJ.showMessage("Processing Images. This may take a while. (Press OK to start.)");
+        String info = "Processing Images. This may take a while. (Press OK to start.)\n";
+        IJ.showMessage(info);
         IJ.showProgress(this.progressBarCurrent, this.progressBarMax);
 
         // Loop through our files, load their images, add to queue
