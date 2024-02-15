@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,7 +23,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
-import ij.gui.WaitForUserDialog;
 import org.scijava.command.CommandModule;
 
 // Logservice integration
@@ -393,6 +393,11 @@ public class TWOMBLIWindow extends StackWindow {
         this.setMinimumSize(this.getPreferredSize());
     }
 
+    @Override
+    public void windowClosing(WindowEvent e) {
+        super.windowClosing(e);
+    }
+
     private void toggleOutputAvailableInteractions(boolean state) {
         this.minimumLineWidthField.setEnabled(state);
         this.maximumLineWidthField.setEnabled(state);
@@ -467,8 +472,7 @@ public class TWOMBLIWindow extends StackWindow {
                 " - IJ-RidgeDetection: {TODO:ij_ridge_link}\n" +
                 " - MaxInscribedCircles: {TODO:circles_link}\n" +
                 " - Bio-Formats: {TODO:bioformats_link}\n";
-        WaitForUserDialog dialog = new WaitForUserDialog("TWOMBLI Information", info);
-        dialog.show();
+        IJ.showMessage(info);
     }
 
     private void getOutputDirectory() {
@@ -679,8 +683,9 @@ public class TWOMBLIWindow extends StackWindow {
             IJ.showProgress(1, 1);
             this.generateSummaries();
 
-            // Reopen us?
+            // Reopen us because someone closed everything with a hammer?
             this.setVisible(true);
+            this.closed = false;
         }
     }
 
