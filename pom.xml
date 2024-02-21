@@ -14,7 +14,7 @@
 
     <groupId>uk.ac.franciscrickinstitute.twombli</groupId>
     <artifactId>TWOMBLI_</artifactId>
-    <version>0.0.0</version>
+    <version>2.0.0</version>
 
     <name>TWOMBLI</name>
     <description>The Workflow Of Matrix BioLogy Informatics (TWOMBLI).</description>
@@ -136,12 +136,10 @@
         <dependency>
             <groupId>org.scijava</groupId>
             <artifactId>scijava-plugins-commands</artifactId>
-<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej</artifactId>
-<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>net.imagej</groupId>
@@ -157,7 +155,6 @@
             <groupId>com.github.Biomedical-Imaging-Group</groupId>
             <artifactId>OrientationJ</artifactId>
             <version>ce968334bc</version> <!-- corresponds to 2.0.5 -->
-<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>com.github.djpbarry</groupId>
@@ -226,7 +223,6 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>2.20.0</version>
-<!--            <scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -238,7 +234,6 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.20.0</version>
-<!--            <scope>provided</scope>-->
         </dependency>
     </dependencies>
     <build>
